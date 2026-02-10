@@ -34,12 +34,12 @@
                 --selection-bg: #1b2e1c;
                 --header-text: #e0e0e0;
                 --overlay-header: #252525;
-                --modal-bg: rgba(0,0,0,0.8);
             }
         }
 
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; -webkit-user-select: none; user-select: none; }
 
+        /* Sticky Header Logic */
         .sticky-group { position: sticky; top: 0; z-index: 50; background: var(--bg); }
         header { background: var(--primary); color: var(--header-text); padding: 12px 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         header h1 { margin: 0; font-size: 1.1rem; font-weight: 500; }
@@ -47,88 +47,80 @@
         .summary-box { background: var(--card-bg); padding: 12px 15px; border-bottom: 1px solid var(--border); box-shadow: 0 4px 6px -4px rgba(0,0,0,0.1); }
         .summary-stats { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.85rem; }
         .stat-group { text-align: center; flex: 1; }
-        .stat-group:first-child { text-align: left; }
-        .stat-group:last-child { text-align: right; }
         .stat-value { font-weight: bold; color: var(--primary); font-size: 1rem; }
         .streak-icon { color: var(--streak-fire); }
         .stat-label { font-size: 0.75rem; color: var(--subtext); display: block; }
+
         .progress-container { height: 6px; background: var(--border); border-radius: 4px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s ease; }
 
-        .container { max-width: 600px; margin: auto; padding: 15px 15px 120px 15px; }
+        .container { max-width: 600px; margin: auto; padding: 15px 15px 150px 15px; }
 
+        /* Surah Card Styles */
         .surah-wrapper { position: relative; margin-bottom: 12px; overflow: hidden; border-radius: 12px; background: var(--primary); }
         .surah-wrapper.is-revised { background: var(--undo); }
         .swipe-bg { position: absolute; top: 0; bottom: 0; width: 100%; color: white; display: flex; align-items: center; padding: 0 20px; font-weight: bold; font-size: 0.8rem; }
         .bg-left { justify-content: flex-start; }
         .bg-right { justify-content: flex-end; }
-        .surah-card { background: var(--card-bg); padding: 16px; display: flex; align-items: center; position: relative; z-index: 2; border: 1px solid var(--border); border-radius: 12px; transition: transform 0.1s ease-out; touch-action: pan-y; }
+
+        .surah-card {
+            background: var(--card-bg); padding: 16px; display: flex; align-items: center;
+            position: relative; z-index: 2; border: 1px solid var(--border); border-radius: 12px;
+            transition: transform 0.1s ease-out; touch-action: pan-y;
+        }
         .surah-card.revised-style { opacity: 0.6; border-style: dashed; }
         .surah-num { font-weight: bold; color: var(--primary); margin-right: 15px; width: 25px; }
         .surah-info { display: flex; flex-direction: column; flex-grow: 1; }
         .surah-name { font-size: 1.05em; font-weight: 500; }
         .last-revised { font-size: 0.75em; color: var(--subtext); margin-top: 2px; }
 
-        .button-group { position: fixed; bottom: 30px; right: 25px; display: flex; flex-direction: column; gap: 15px; z-index: 100; }
-        .fab { width: 56px; height: 56px; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); background: var(--primary); transition: transform 0.1s; }
-        .fab:active { transform: scale(0.95); }
-        .fab-eye { background: #546e7a; font-size: 22px; }
-        .fab-eye.active { background: #ffa726; color: #000; }
-
-        /* TOAST STYLES */
-        #toast {
-            visibility: hidden;
-            min-width: 280px;
-            background-color: #323232;
-            color: #fff;
-            text-align: center;
-            border-radius: 8px;
-            padding: 16px;
-            position: fixed;
-            z-index: 1000;
-            left: 50%;
-            bottom: 30px;
-            transform: translateX(-50%);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        /* Themed Quran Link Icon */
+        .quran-link {
+            padding: 8px;
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 1.4rem;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            font-size: 0.95rem;
-            opacity: 0;
-            transition: opacity 0.3s, bottom 0.3s;
+            justify-content: center;
+            border-radius: 8px;
+            transition: background 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
-        #toast.show {
-            visibility: visible;
-            opacity: 1;
-            bottom: 40px;
-        }
-        #toast-undo-btn {
-            color: #ff9800;
-            font-weight: bold;
-            cursor: pointer;
-            margin-left: 20px;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            letter-spacing: 0.5px;
-        }
+        .quran-link:active { background: var(--selection-bg); }
 
+        /* Floating Action Buttons */
+        .button-group { position: fixed; bottom: 30px; right: 25px; display: flex; flex-direction: column; gap: 12px; z-index: 100; }
+        .fab {
+            width: 56px; height: 56px; color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; cursor: pointer; border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); background: var(--primary);
+            transition: transform 0.1s, background 0.2s;
+        }
+        .fab:active { transform: scale(0.9); }
+        #toggle-eye.active { background: #1b5e20; box-shadow: inset 0 2px 5px rgba(0,0,0,0.3); }
+
+        /* Toast Styles */
+        #toast {
+            visibility: hidden; min-width: 280px; background-color: #323232; color: #fff;
+            text-align: center; border-radius: 8px; padding: 16px; position: fixed;
+            z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: flex; justify-content: space-between;
+            align-items: center; opacity: 0; transition: opacity 0.3s, bottom 0.3s;
+        }
+        #toast.show { visibility: visible; opacity: 1; bottom: 40px; }
+        #toast-undo-btn { color: #ff9800; font-weight: bold; cursor: pointer; margin-left: 20px; text-transform: uppercase; font-size: 0.9rem; }
+
+        /* Overlays */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-bg); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; }
         .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center; }
-        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-        .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-confirm { background: var(--primary); color: white; }
 
         #selection-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--card-bg); z-index: 200; display: none; flex-direction: column; }
         .selection-header { padding: 15px 20px; background: var(--overlay-header); border-bottom: 1px solid var(--border); }
-        .sync-section { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .sync-section { display: flex; gap: 10px; margin-top: 10px; }
         .sync-btn { background: #4285F4; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 0.8rem; cursor: pointer; flex: 1; }
         #install-btn { background: var(--primary); display: none; }
-
-        #search-input { width: 100%; padding: 10px 15px; border: 1px solid var(--border); border-radius: 20px; margin-top: 10px; box-sizing: border-box; background: var(--card-bg); color: var(--text); outline: none; }
-        .surah-list-scroll { flex-grow: 1; overflow-y: auto; padding: 10px; }
-        .selectable-item { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; }
-        .selectable-item.selected { background: var(--selection-bg); border-left: 5px solid var(--primary); }
-        .done-btn { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; float: right; }
 
         @keyframes slideOutLeft { to { transform: translateX(-100%); opacity: 0; } }
         @keyframes slideOutRight { to { transform: translateX(100%); opacity: 0; } }
@@ -168,7 +160,9 @@
 
 <div class="button-group">
     <button class="fab" id="reset-fab" title="Hold to Restart">⟲</button>
-    <button class="fab fab-eye" id="toggle-eye" onclick="toggleShowRevised()" title="Show/Hide Revised">👁</button>
+    <button class="fab" id="toggle-eye" onclick="toggleShowRevised()" title="Show/Hide Revised">
+        <span id="eye-icon">👁️</span>
+    </button>
     <button class="fab" onclick="toggleSelectionScreen()" title="Add Surah">+</button>
 </div>
 
@@ -176,25 +170,24 @@
     <div class="modal-content">
         <h3>Restart Cycle?</h3>
         <p style="color:var(--subtext)">This will reset your progress but keep your revision dates.</p>
-        <div class="modal-btns">
-            <button class="btn" style="background:var(--border)" onclick="closeModal()">Cancel</button>
-            <button class="btn btn-confirm" onclick="executeRestart()">Restart</button>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button style="flex:1; padding:12px; border:none; border-radius:8px; background:var(--border)" onclick="closeModal()">Cancel</button>
+            <button style="flex:1; padding:12px; border:none; border-radius:8px; background:var(--primary); color:white; font-weight:bold;" onclick="executeRestart()">Restart</button>
         </div>
     </div>
 </div>
 
 <div id="selection-screen">
     <div class="selection-header">
-        <button class="done-btn" onclick="toggleSelectionScreen()">Done</button>
-        <h3>Manage App</h3>
+        <button style="float:right; background:var(--primary); color:white; border:none; padding:8px 16px; border-radius:6px;" onclick="toggleSelectionScreen()">Done</button>
+        <h3>Manage List</h3>
         <div class="sync-section">
             <button class="sync-btn" id="install-btn" onclick="installPWA()">📲 Install App</button>
             <button class="sync-btn" onclick="syncToCloud()">☁️ Backup</button>
-            <button class="sync-btn" style="background:#666;" onclick="restoreFromCloud()">♻️ Restore</button>
         </div>
-        <input type="text" id="search-input" placeholder="Search..." oninput="filterSurahs()">
+        <input type="text" id="search-input" placeholder="Search Surahs..." oninput="filterSurahs()" style="width:100%; padding:10px; margin-top:10px; border-radius:20px; border:1px solid #ddd; outline:none;">
     </div>
-    <div class="surah-list-scroll" id="full-surah-list"></div>
+    <div id="full-surah-list" style="flex:1; overflow-y:auto; padding:10px;"></div>
 </div>
 
 <script>
@@ -218,16 +211,7 @@
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js').then(reg => {
-                reg.onupdatefound = () => {
-                    const installingWorker = reg.installing;
-                    installingWorker.onstatechange = () => {
-                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            window.location.reload();
-                        }
-                    };
-                };
-            });
+            navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW Active'));
         });
     }
 
@@ -241,75 +225,19 @@
     let toastTimeout;
 
     async function loadSurahData() {
-        const response = await fetch('surahs.json');
-        surahs = await response.json();
-        calculateStreak();
-        renderMainScreen();
-        renderFullList();
+        try {
+            const response = await fetch('surahs.json');
+            surahs = await response.json();
+            calculateStreak();
+            renderMainScreen();
+            renderFullList();
+        } catch (e) { console.error("Could not load surahs.json"); }
     }
 
-    // --- TOAST LOGIC ---
-    function showToast(surahName, surahId) {
-        const toast = document.getElementById("toast");
-        const msgSpan = document.getElementById("toast-message");
-        const undoBtn = document.getElementById("toast-undo-btn");
-
-        msgSpan.innerText = `${surahName} Revised`;
-
-        // Setup Undo Action
-        undoBtn.onclick = () => {
-            updateStatus(surahId, false); // Mark as false (Undo)
-            hideToast();
-        };
-
-        // Show toast
-        clearTimeout(toastTimeout);
-        toast.className = "show";
-
-        // Auto hide after 5 seconds
-        toastTimeout = setTimeout(() => {
-            hideToast();
-        }, 5000);
-    }
-
-    function hideToast() {
-        const toast = document.getElementById("toast");
-        toast.className = toast.className.replace("show", "");
-    }
-
-    // --- STREAK LOGIC ---
-    function calculateStreak() {
-        const today = new Date().toDateString();
-        if (streakData.lastDate !== today) {
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            if (streakData.lastDate !== yesterday.toDateString()) {
-                if (streakData.lastDate) {
-                    streakData.count = 0;
-                    saveStreak();
-                }
-            }
-        }
-        document.getElementById('streak-count').innerText = streakData.count;
-    }
-
-    function updateStreak() {
-        const today = new Date().toDateString();
-        if (streakData.lastDate !== today) {
-            streakData.count++;
-            streakData.lastDate = today;
-            saveStreak();
-            document.getElementById('streak-count').innerText = streakData.count;
-        }
-    }
-
-    function saveStreak() { localStorage.setItem('streakData', JSON.stringify(streakData)); }
-
-    // --- RENDER LOGIC ---
+    // --- RENDERING ---
     function renderMainScreen() {
         const total = userData.length;
         const revisedCount = userData.filter(u => u.revised).length;
-
         document.getElementById('progress-text').innerText = `${revisedCount}/${total}`;
         document.getElementById('progress-bar').style.width = `${total > 0 ? (revisedCount/total)*100 : 0}%`;
 
@@ -317,12 +245,13 @@
         document.getElementById('cycle-days').innerText = `Day ${diff + 1}`;
 
         const eyeBtn = document.getElementById('toggle-eye');
+        const eyeIcon = document.getElementById('eye-icon');
         if (showRevised) {
             eyeBtn.classList.add('active');
-            eyeBtn.innerHTML = '✓';
+            eyeIcon.innerHTML = '👁️‍🗨️';
         } else {
             eyeBtn.classList.remove('active');
-            eyeBtn.innerHTML = '👁';
+            eyeIcon.innerHTML = '👁️';
         }
 
         const container = document.getElementById('main-list');
@@ -330,15 +259,11 @@
 
         const list = surahs.filter(s => {
             const r = userData.find(u => u.id === s.id);
-            if (!r) return false;
-            return showRevised ? true : !r.revised;
+            return r && (showRevised ? true : !r.revised);
         }).sort((a,b) => a.id - b.id);
 
         if (list.length === 0 && !showRevised) {
-            container.innerHTML = `<div style="text-align:center; color:var(--subtext); margin-top:40px;">
-                <h3>All Caught Up!</h3>
-                <p>Tap the 👁 button to see your revised surahs.</p>
-            </div>`;
+            container.innerHTML = `<div style="text-align:center; color:var(--subtext); margin-top:40px;"><h3>All Revised!</h3><p>Tap the eye to see them.</p></div>`;
         }
 
         list.forEach(s => {
@@ -356,6 +281,7 @@
                         <span class="surah-name">${s.name}</span>
                         <span class="last-revised">${r.lastDate ? 'Last: ' + r.lastDate : 'New'}</span>
                     </div>
+                    <a href="https://quran.com/${s.id}" target="_blank" class="quran-link" onclick="event.stopPropagation()">📖</a>
                 </div>`;
 
             setupSwipe(wrapper.querySelector('.surah-card'), s.id, r.revised, s.name);
@@ -368,45 +294,68 @@
         renderMainScreen();
     }
 
+    // --- SWIPE & TOAST ---
     function setupSwipe(el, id, isAlreadyRevised, surahName) {
         let startX = 0, currentX = 0;
         el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; el.style.transition = 'none'; }, {passive: true});
         el.addEventListener('touchmove', e => {
             currentX = e.touches[0].clientX;
             let diff = currentX - startX;
-            if (!isAlreadyRevised && diff < 0) el.style.transform = `translateX(${diff}px)`;
-            if (isAlreadyRevised && diff > 0) el.style.transform = `translateX(${diff}px)`;
+            if ((!isAlreadyRevised && diff < 0) || (isAlreadyRevised && diff > 0)) el.style.transform = `translateX(${diff}px)`;
         }, {passive: true});
         el.addEventListener('touchend', () => {
             el.style.transition = 'transform 0.2s ease-out';
             let diff = currentX - startX;
-            if (!isAlreadyRevised && diff < -100) {
-                el.classList.add('anim-left');
-                updateStatus(id, true, surahName); // Pass name for Toast
-            } else if (isAlreadyRevised && diff > 100) {
-                el.classList.add('anim-right');
-                updateStatus(id, false, surahName);
+            if (Math.abs(diff) > 100) {
+                el.classList.add(diff < 0 ? 'anim-left' : 'anim-right');
+                updateStatus(id, diff < 0, surahName);
             } else {
                 el.style.transform = `translateX(0px)`;
             }
         });
     }
 
-    function updateStatus(id, status, surahName = '') {
+    function updateStatus(id, status, surahName) {
         setTimeout(() => {
             const r = userData.find(u => u.id === id);
             r.revised = status;
-
             if (status) {
                 r.lastDate = new Date().toLocaleDateString('en-GB');
                 updateStreak();
-                // Trigger Toast ONLY when marking as revised
                 showToast(surahName, id);
             }
-
             saveData(); renderMainScreen();
         }, 300);
     }
+
+    function showToast(name, id) {
+        const t = document.getElementById("toast");
+        document.getElementById("toast-message").innerText = `${name} Revised`;
+        document.getElementById("toast-undo-btn").onclick = () => { updateStatus(id, false, name); hideToast(); };
+        t.className = "show";
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(hideToast, 5000);
+    }
+
+    function hideToast() { document.getElementById("toast").className = ""; }
+
+    // --- STREAK & HELPERS ---
+    function calculateStreak() {
+        const today = new Date().toDateString();
+        if (streakData.lastDate && streakData.lastDate !== today) {
+            const yest = new Date(); yest.setDate(yest.getDate()-1);
+            if (streakData.lastDate !== yest.toDateString()) streakData.count = 0;
+        }
+        document.getElementById('streak-count').innerText = streakData.count;
+    }
+
+    function updateStreak() {
+        const today = new Date().toDateString();
+        if (streakData.lastDate !== today) { streakData.count++; streakData.lastDate = today; saveStreak(); }
+    }
+
+    function saveStreak() { localStorage.setItem('streakData', JSON.stringify(streakData)); }
+    function saveData() { localStorage.setItem('hifzData', JSON.stringify(userData)); }
 
     const resetBtn = document.getElementById('reset-fab');
     resetBtn.addEventListener('touchstart', () => { longPressTimer = setTimeout(() => { document.getElementById('confirm-modal').style.display = 'flex'; }, 800); });
@@ -419,6 +368,32 @@
         saveData(); closeModal(); renderMainScreen();
     }
 
+    function closeModal() { document.getElementById('confirm-modal').style.display = 'none'; }
+    function toggleSelectionScreen() {
+        const s = document.getElementById('selection-screen');
+        s.style.display = s.style.display === 'flex' ? 'none' : 'flex';
+        renderMainScreen();
+    }
+
+    function renderFullList() {
+        const filter = document.getElementById('search-input').value.toLowerCase();
+        const container = document.getElementById('full-surah-list');
+        container.innerHTML = '';
+        surahs.filter(s => s.name.toLowerCase().includes(filter)).forEach(s => {
+            const sel = userData.some(u => u.id === s.id);
+            const div = document.createElement('div');
+            div.style = `padding:15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; ${sel ? 'background:var(--selection-bg); border-left:5px solid var(--primary);' : ''}`;
+            div.innerHTML = `<span><strong>${s.id}.</strong> ${s.name}</span> <span>${sel ? '✅' : '+'}</span>`;
+            div.onclick = () => {
+                const i = userData.findIndex(u => u.id === s.id);
+                if (i > -1) userData.splice(i, 1); else userData.push({id: s.id, revised: false, lastDate: null});
+                saveData(); renderFullList();
+            };
+            container.appendChild(div);
+        });
+    }
+
+    function filterSurahs() { renderFullList(); }
     function syncToCloud() {
         const dataStr = btoa(JSON.stringify({userData, cycleStartDate, streakData}));
         const shareLink = window.location.href.split('?')[0] + "?data=" + dataStr;
@@ -426,48 +401,6 @@
         else prompt("Copy backup link:", shareLink);
     }
 
-    function restoreFromCloud() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const data = urlParams.get('data');
-        if (data) {
-            try {
-                const decoded = JSON.parse(atob(data));
-                userData = decoded.userData;
-                cycleStartDate = decoded.cycleStartDate;
-                streakData = decoded.streakData || { count: 0, lastDate: null };
-                saveData(); saveStreak();
-                alert("Restored!");
-                window.location.href = window.location.href.split('?')[0];
-            } catch(e) { alert("Invalid link"); }
-        } else alert("No data in URL");
-    }
-
-    function toggleSurahSelection(id) {
-        const i = userData.findIndex(u => u.id === id);
-        if (i > -1) userData.splice(i, 1); else userData.push({id, revised: false, lastDate: null});
-        saveData(); renderFullList(document.getElementById('search-input').value);
-    }
-
-    function saveData() { localStorage.setItem('hifzData', JSON.stringify(userData)); }
-    function closeModal() { document.getElementById('confirm-modal').style.display = 'none'; }
-    function toggleSelectionScreen() {
-        const s = document.getElementById('selection-screen');
-        s.style.display = s.style.display === 'flex' ? 'none' : 'flex';
-        renderMainScreen();
-    }
-    function renderFullList(f = '') {
-        const container = document.getElementById('full-surah-list');
-        container.innerHTML = '';
-        surahs.filter(s => s.name.toLowerCase().includes(f.toLowerCase())).forEach(s => {
-            const sel = userData.some(u => u.id === s.id);
-            const div = document.createElement('div');
-            div.className = `selectable-item ${sel ? 'selected' : ''}`;
-            div.innerHTML = `<strong>${s.id}.</strong> &nbsp; ${s.name}`;
-            div.onclick = () => toggleSurahSelection(s.id);
-            container.appendChild(div);
-        });
-    }
-    function filterSurahs() { renderFullList(document.getElementById('search-input').value); }
     window.onload = loadSurahData;
 </script>
 </body>
