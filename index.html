@@ -40,51 +40,23 @@
 
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; -webkit-user-select: none; user-select: none; }
 
-        /* Sticky Header Group */
-        .sticky-group {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            background: var(--bg); /* Prevents content showing behind */
-        }
-
-        header {
-            background: var(--primary);
-            color: var(--header-text);
-            padding: 12px 20px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+        .sticky-group { position: sticky; top: 0; z-index: 50; background: var(--bg); }
+        header { background: var(--primary); color: var(--header-text); padding: 12px 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         header h1 { margin: 0; font-size: 1.1rem; font-weight: 500; }
 
-        /* Sticky Summary */
-        .summary-box {
-            background: var(--card-bg);
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border);
-            box-shadow: 0 4px 6px -4px rgba(0,0,0,0.1);
-        }
-        .summary-stats {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 0.85rem;
-        }
+        .summary-box { background: var(--card-bg); padding: 12px 15px; border-bottom: 1px solid var(--border); box-shadow: 0 4px 6px -4px rgba(0,0,0,0.1); }
+        .summary-stats { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.85rem; }
         .stat-group { text-align: center; flex: 1; }
         .stat-group:first-child { text-align: left; }
         .stat-group:last-child { text-align: right; }
-
         .stat-value { font-weight: bold; color: var(--primary); font-size: 1rem; }
         .streak-icon { color: var(--streak-fire); }
         .stat-label { font-size: 0.75rem; color: var(--subtext); display: block; }
-
         .progress-container { height: 6px; background: var(--border); border-radius: 4px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s ease; }
 
         .container { max-width: 600px; margin: auto; padding: 15px 15px 120px 15px; }
 
-        /* Card Styles */
         .surah-wrapper { position: relative; margin-bottom: 12px; overflow: hidden; border-radius: 12px; background: var(--primary); }
         .surah-wrapper.is-revised { background: var(--undo); }
         .swipe-bg { position: absolute; top: 0; bottom: 0; width: 100%; color: white; display: flex; align-items: center; padding: 0 20px; font-weight: bold; font-size: 0.8rem; }
@@ -97,26 +69,60 @@
         .surah-name { font-size: 1.05em; font-weight: 500; }
         .last-revised { font-size: 0.75em; color: var(--subtext); margin-top: 2px; }
 
-        /* Floating Buttons */
         .button-group { position: fixed; bottom: 30px; right: 25px; display: flex; flex-direction: column; gap: 15px; z-index: 100; }
         .fab { width: 56px; height: 56px; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); background: var(--primary); transition: transform 0.1s; }
         .fab:active { transform: scale(0.95); }
         .fab-eye { background: #546e7a; font-size: 22px; }
         .fab-eye.active { background: #ffa726; color: #000; }
 
-        /* Modal & Settings */
+        /* TOAST STYLES */
+        #toast {
+            visibility: hidden;
+            min-width: 280px;
+            background-color: #323232;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 40px;
+        }
+        #toast-undo-btn {
+            color: #ff9800;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 20px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-bg); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; }
         .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center; }
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
         .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .btn-confirm { background: var(--primary); color: white; }
 
-        /* Selection Screen */
         #selection-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--card-bg); z-index: 200; display: none; flex-direction: column; }
         .selection-header { padding: 15px 20px; background: var(--overlay-header); border-bottom: 1px solid var(--border); }
         .sync-section { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
         .sync-btn { background: #4285F4; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 0.8rem; cursor: pointer; flex: 1; }
-        #install-btn { background: var(--primary); display: none; } /* Hidden by default */
+        #install-btn { background: var(--primary); display: none; }
 
         #search-input { width: 100%; padding: 10px 15px; border: 1px solid var(--border); border-radius: 20px; margin-top: 10px; box-sizing: border-box; background: var(--card-bg); color: var(--text); outline: none; }
         .surah-list-scroll { flex-grow: 1; overflow-y: auto; padding: 10px; }
@@ -155,6 +161,11 @@
 
 <div class="container" id="main-list"></div>
 
+<div id="toast">
+    <span id="toast-message">Surah Revised</span>
+    <span id="toast-undo-btn">UNDO</span>
+</div>
+
 <div class="button-group">
     <button class="fab" id="reset-fab" title="Hold to Restart">⟲</button>
     <button class="fab fab-eye" id="toggle-eye" onclick="toggleShowRevised()" title="Show/Hide Revised">👁</button>
@@ -192,10 +203,8 @@
     const installBtn = document.getElementById('install-btn');
 
     window.addEventListener('beforeinstallprompt', (e) => {
-        // Prevent default browser banner
         e.preventDefault();
         deferredPrompt = e;
-        // Show our custom install button
         installBtn.style.display = 'block';
     });
 
@@ -203,15 +212,22 @@
         if (!deferredPrompt) return;
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-            installBtn.style.display = 'none';
-        }
+        if (outcome === 'accepted') installBtn.style.display = 'none';
         deferredPrompt = null;
     }
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW Registered'));
+            navigator.serviceWorker.register('./sw.js').then(reg => {
+                reg.onupdatefound = () => {
+                    const installingWorker = reg.installing;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            window.location.reload();
+                        }
+                    };
+                };
+            });
         });
     }
 
@@ -222,6 +238,7 @@
     let showRevised = false;
     let streakData = JSON.parse(localStorage.getItem('streakData')) || { count: 0, lastDate: null };
     let longPressTimer;
+    let toastTimeout;
 
     async function loadSurahData() {
         const response = await fetch('surahs.json');
@@ -231,18 +248,44 @@
         renderFullList();
     }
 
+    // --- TOAST LOGIC ---
+    function showToast(surahName, surahId) {
+        const toast = document.getElementById("toast");
+        const msgSpan = document.getElementById("toast-message");
+        const undoBtn = document.getElementById("toast-undo-btn");
+
+        msgSpan.innerText = `${surahName} Revised`;
+
+        // Setup Undo Action
+        undoBtn.onclick = () => {
+            updateStatus(surahId, false); // Mark as false (Undo)
+            hideToast();
+        };
+
+        // Show toast
+        clearTimeout(toastTimeout);
+        toast.className = "show";
+
+        // Auto hide after 5 seconds
+        toastTimeout = setTimeout(() => {
+            hideToast();
+        }, 5000);
+    }
+
+    function hideToast() {
+        const toast = document.getElementById("toast");
+        toast.className = toast.className.replace("show", "");
+    }
+
     // --- STREAK LOGIC ---
     function calculateStreak() {
         const today = new Date().toDateString();
-        // If last active date was NOT today, check if it was yesterday
         if (streakData.lastDate !== today) {
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
-
             if (streakData.lastDate !== yesterday.toDateString()) {
-                // If it wasn't yesterday (and not today), streak is broken
                 if (streakData.lastDate) {
-                    streakData.count = 0; // Only reset if a streak existed
+                    streakData.count = 0;
                     saveStreak();
                 }
             }
@@ -273,11 +316,10 @@
         const diff = Math.floor(Math.abs(new Date() - new Date(cycleStartDate)) / (86400000));
         document.getElementById('cycle-days').innerText = `Day ${diff + 1}`;
 
-        // Update Toggle Button Style
         const eyeBtn = document.getElementById('toggle-eye');
         if (showRevised) {
             eyeBtn.classList.add('active');
-            eyeBtn.innerHTML = '✓'; // Change icon to tick when active
+            eyeBtn.innerHTML = '✓';
         } else {
             eyeBtn.classList.remove('active');
             eyeBtn.innerHTML = '👁';
@@ -316,7 +358,7 @@
                     </div>
                 </div>`;
 
-            setupSwipe(wrapper.querySelector('.surah-card'), s.id, r.revised);
+            setupSwipe(wrapper.querySelector('.surah-card'), s.id, r.revised, s.name);
             container.appendChild(wrapper);
         });
     }
@@ -326,7 +368,7 @@
         renderMainScreen();
     }
 
-    function setupSwipe(el, id, isAlreadyRevised) {
+    function setupSwipe(el, id, isAlreadyRevised, surahName) {
         let startX = 0, currentX = 0;
         el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; el.style.transition = 'none'; }, {passive: true});
         el.addEventListener('touchmove', e => {
@@ -340,29 +382,32 @@
             let diff = currentX - startX;
             if (!isAlreadyRevised && diff < -100) {
                 el.classList.add('anim-left');
-                updateStatus(id, true);
+                updateStatus(id, true, surahName); // Pass name for Toast
             } else if (isAlreadyRevised && diff > 100) {
                 el.classList.add('anim-right');
-                updateStatus(id, false);
+                updateStatus(id, false, surahName);
             } else {
                 el.style.transform = `translateX(0px)`;
             }
         });
     }
 
-    function updateStatus(id, status) {
+    function updateStatus(id, status, surahName = '') {
         setTimeout(() => {
             const r = userData.find(u => u.id === id);
             r.revised = status;
+
             if (status) {
                 r.lastDate = new Date().toLocaleDateString('en-GB');
-                updateStreak(); // Update streak only on successful revision
+                updateStreak();
+                // Trigger Toast ONLY when marking as revised
+                showToast(surahName, id);
             }
+
             saveData(); renderMainScreen();
         }, 300);
     }
 
-    // Helpers
     const resetBtn = document.getElementById('reset-fab');
     resetBtn.addEventListener('touchstart', () => { longPressTimer = setTimeout(() => { document.getElementById('confirm-modal').style.display = 'flex'; }, 800); });
     resetBtn.addEventListener('touchend', () => clearTimeout(longPressTimer));
@@ -422,6 +467,7 @@
             container.appendChild(div);
         });
     }
+    function filterSurahs() { renderFullList(document.getElementById('search-input').value); }
     window.onload = loadSurahData;
 </script>
 </body>
