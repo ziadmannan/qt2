@@ -1,8 +1,7 @@
 {
   "name": "Quran Revision Tracker",
   "short_name": "Hifz",
-  "id": "/quran-tracker/",
-  "start_url": ".",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#2e7d32",
   "theme_color": "#2e7d32",

@@ -19,6 +19,7 @@
             --header-text: #ffffff;
             --overlay-header: #eeeeee;
             --modal-bg: rgba(0,0,0,0.5);
+            --undo: #d32f2f;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -36,77 +37,93 @@
             }
         }
 
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; -webkit-user-select: none; user-select: none; }
         header { background: var(--primary); color: var(--header-text); padding: 12px 20px; text-align: center; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         header h1 { margin: 0; font-size: 1.1rem; font-weight: 500; }
 
-        .summary-box { background: var(--card-bg); margin: 15px; padding: 20px; border-radius: 15px; border: 1px solid var(--border); }
-        .summary-stats { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.9rem; }
-        .stat-label { color: var(--subtext); }
+        .summary-box { background: var(--card-bg); margin: 15px; padding: 15px; border-radius: 15px; border: 1px solid var(--border); }
+        .summary-stats { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.85rem; }
         .stat-value { font-weight: bold; color: var(--primary); }
-        .progress-container { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+
+        .progress-container { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 15px; }
         .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s ease; }
 
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; border-top: 1px solid var(--border); padding-top: 10px; }
+
         .container { max-width: 600px; margin: auto; padding: 0 15px 100px 15px; }
+
+        /* Swipe Actions */
         .surah-wrapper { position: relative; margin-bottom: 12px; overflow: hidden; border-radius: 12px; background: var(--primary); }
-        .revise-background { position: absolute; right: 0; top: 0; bottom: 0; width: 100%; color: white; display: flex; align-items: center; justify-content: flex-end; padding-right: 25px; font-weight: bold; }
-        .surah-card { background: var(--card-bg); padding: 16px; display: flex; align-items: center; position: relative; z-index: 2; transition: transform 0.1s ease-out; touch-action: pan-y; border: 1px solid var(--border); border-radius: 12px; }
+        .surah-wrapper.is-revised { background: var(--undo); }
+
+        .swipe-bg { position: absolute; top: 0; bottom: 0; width: 100%; color: white; display: flex; align-items: center; padding: 0 20px; font-weight: bold; font-size: 0.8rem; }
+        .bg-left { justify-content: flex-start; }
+        .bg-right { justify-content: flex-end; }
+
+        .surah-card {
+            background: var(--card-bg); padding: 16px; display: flex; align-items: center;
+            position: relative; z-index: 2; border: 1px solid var(--border); border-radius: 12px;
+            transition: transform 0.1s ease-out; touch-action: pan-y;
+        }
+        .surah-card.revised-style { opacity: 0.6; border-style: dashed; }
         .surah-num { font-weight: bold; color: var(--primary); margin-right: 15px; width: 25px; }
         .surah-info { display: flex; flex-direction: column; flex-grow: 1; }
         .surah-name { font-size: 1.05em; font-weight: 500; }
         .last-revised { font-size: 0.75em; color: var(--subtext); margin-top: 2px; }
 
         .button-group { position: fixed; bottom: 25px; right: 25px; display: flex; flex-direction: column; gap: 15px; z-index: 100; }
-        .fab { width: 56px; height: 56px; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); background: var(--primary); transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
+        .fab { width: 56px; height: 56px; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3); background: var(--primary); }
 
+        /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-bg); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; }
         .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center; }
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
         .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-cancel { background: var(--border); color: var(--text); }
         .btn-confirm { background: var(--primary); color: white; }
 
         #selection-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--card-bg); z-index: 200; display: none; flex-direction: column; }
         .selection-header { padding: 15px 20px; background: var(--overlay-header); border-bottom: 1px solid var(--border); }
-
-        .sync-section { background: var(--bg); padding: 15px; border-radius: 10px; margin-top: 10px; text-align: left; }
-        .sync-btn { background: #4285F4; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-size: 0.8rem; cursor: pointer; margin-top: 5px; }
-
-        #search-input { width: 100%; padding: 10px 15px; border: 1px solid var(--border); border-radius: 20px; margin-top: 10px; box-sizing: border-box; background: var(--card-bg); color: var(--text); outline: none; }
+        #search-input { width: 100%; padding: 10px 15px; border: 1px solid var(--border); border-radius: 20px; margin-top: 10px; box-sizing: border-box; background: var(--card-bg); color: var(--text); }
         .surah-list-scroll { flex-grow: 1; overflow-y: auto; padding: 10px; }
         .selectable-item { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; }
         .selectable-item.selected { background: var(--selection-bg); border-left: 5px solid var(--primary); }
-        .done-btn { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; float: right; cursor: pointer; }
-        .swiping-out { animation: slideOut 0.3s forwards; }
-        @keyframes slideOut { to { transform: translateX(-100%); opacity: 0; } }
+        .done-btn { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; float: right; }
+
+        @keyframes slideOutLeft { to { transform: translateX(-100%); opacity: 0; } }
+        @keyframes slideOutRight { to { transform: translateX(100%); opacity: 0; } }
+        .anim-left { animation: slideOutLeft 0.3s forwards; }
+        .anim-right { animation: slideOutRight 0.3s forwards; }
     </style>
 </head>
 <body>
 
 <header><h1>Quran Revision Tracker</h1></header>
 
-<div class="summary-box" id="summary-section">
+<div class="summary-box">
     <div class="summary-stats">
-        <div><span class="stat-label">Progress:</span> <span class="stat-value" id="progress-text">0/0</span></div>
-        <div><span class="stat-label">Cycle:</span> <span class="stat-value" id="cycle-days">Day 0</span></div>
+        <div>Progress: <span class="stat-value" id="progress-text">0/0</span></div>
+        <div id="cycle-days">Day 1</div>
     </div>
     <div class="progress-container"><div class="progress-fill" id="progress-bar"></div></div>
+    <div class="toggle-row">
+        <span>Show Revised Surahs</span>
+        <input type="checkbox" id="show-revised-toggle" onchange="renderMainScreen()">
+    </div>
 </div>
 
 <div class="container" id="main-list"></div>
 
 <div class="button-group">
-    <button class="fab" id="reset-fab" title="Hold to Restart">⟲</button>
+    <button class="fab" id="reset-fab">⟲</button>
     <button class="fab" onclick="toggleSelectionScreen()">+</button>
 </div>
 
 <div class="modal-overlay" id="confirm-modal">
     <div class="modal-content">
-        <h3 id="modal-title">Restart Cycle?</h3>
-        <p id="modal-desc" style="color: var(--subtext);">Ready to start again?</p>
+        <h3>Restart Cycle?</h3>
         <div class="modal-btns">
-            <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
-            <button class="btn btn-confirm" id="modal-confirm-btn">Confirm</button>
+            <button class="btn" style="background:var(--border)" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-confirm" onclick="executeRestart()">Restart</button>
         </div>
     </div>
 </div>
@@ -114,25 +131,25 @@
 <div id="selection-screen">
     <div class="selection-header">
         <button class="done-btn" onclick="toggleSelectionScreen()">Done</button>
-        <h3>Manage Data</h3>
-
-        <div class="sync-section">
-            <small><strong>Cloud Sync</strong></small><br>
-            <button class="sync-btn" onclick="syncToCloud()">Backup to Link</button>
-            <button class="sync-btn" style="background:#666;" onclick="restoreFromCloud()">Restore from Link</button>
-        </div>
-
-        <input type="text" id="search-input" placeholder="Search surahs..." oninput="filterSurahs()">
+        <h3>Manage List</h3>
+        <input type="text" id="search-input" placeholder="Search..." oninput="filterSurahs()">
     </div>
     <div class="surah-list-scroll" id="full-surah-list"></div>
 </div>
 
 <script>
-    // --- PWA REGISTRATION ---
+    // PWA Setup
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js').then(reg => {
-                console.log('PWA Service Worker Registered');
+                reg.onupdatefound = () => {
+                    const installingWorker = reg.installing;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            window.location.reload(); // Force update to fix install issues
+                        }
+                    };
+                };
             });
         });
     }
@@ -149,106 +166,93 @@
         renderFullList();
     }
 
-    function updateSummary() {
-        const total = userData.length;
-        const revised = userData.filter(u => u.revised).length;
-        const percent = total > 0 ? (revised / total) * 100 : 0;
-        document.getElementById('progress-text').innerText = `${revised} / ${total}`;
-        document.getElementById('progress-bar').style.width = `${percent}%`;
-        const diffDays = Math.floor(Math.abs(new Date() - new Date(cycleStartDate)) / (1000 * 60 * 60 * 24));
-        document.getElementById('cycle-days').innerText = `Day ${diffDays + 1}`;
-    }
-
     function renderMainScreen() {
-        updateSummary();
+        const showRevised = document.getElementById('show-revised-toggle').checked;
+        const total = userData.length;
+        const revisedCount = userData.filter(u => u.revised).length;
+
+        document.getElementById('progress-text').innerText = `${revisedCount} / ${total}`;
+        document.getElementById('progress-bar').style.width = `${total > 0 ? (revisedCount/total)*100 : 0}%`;
+        const diff = Math.floor(Math.abs(new Date() - new Date(cycleStartDate)) / (86400000));
+        document.getElementById('cycle-days').innerText = `Day ${diff + 1}`;
+
         const container = document.getElementById('main-list');
         container.innerHTML = '';
-        const toRevise = surahs.filter(s => {
-            const record = userData.find(u => u.id === s.id);
-            return record && !record.revised;
-        }).sort((a, b) => a.id - b.id);
 
-        if (toRevise.length === 0 && userData.length > 0) {
-            container.innerHTML = '<div style="text-align:center; color:var(--subtext); margin-top:40px;"><h3>Cycle Complete!</h3><p>Alhamdulillah.</p></div>';
-            return;
-        }
+        const list = surahs.filter(s => {
+            const r = userData.find(u => u.id === s.id);
+            if (!r) return false;
+            return showRevised ? true : !r.revised;
+        }).sort((a,b) => a.id - b.id);
 
-        toRevise.forEach(s => {
-            const record = userData.find(u => u.id === s.id);
+        list.forEach(s => {
+            const r = userData.find(u => u.id === s.id);
             const wrapper = document.createElement('div');
-            wrapper.className = 'surah-wrapper';
+            wrapper.className = `surah-wrapper ${r.revised ? 'is-revised' : ''}`;
+
             wrapper.innerHTML = `
-                <div class="revise-background">DONE ✓</div>
-                <div class="surah-card">
+                <div class="swipe-bg ${r.revised ? 'bg-left' : 'bg-right'}">
+                    ${r.revised ? 'UNDO ↺' : 'DONE ✓'}
+                </div>
+                <div class="surah-card ${r.revised ? 'revised-style' : ''}">
                     <span class="surah-num">${s.id}</span>
                     <div class="surah-info">
                         <span class="surah-name">${s.name}</span>
-                        <span class="last-revised">${record.lastDate ? 'Last: ' + record.lastDate : 'New'}</span>
+                        <span class="last-revised">${r.lastDate ? 'Last: ' + r.lastDate : 'New'}</span>
                     </div>
                 </div>`;
-            setupSwipe(wrapper.querySelector('.surah-card'), s.id);
+
+            setupSwipe(wrapper.querySelector('.surah-card'), s.id, r.revised);
             container.appendChild(wrapper);
         });
     }
 
-    function setupSwipe(el, id) {
+    function setupSwipe(el, id, isAlreadyRevised) {
         let startX = 0, currentX = 0;
-        el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive: true});
+
+        el.addEventListener('touchstart', e => {
+            startX = e.touches[0].clientX;
+            el.style.transition = 'none';
+        }, {passive: true});
+
         el.addEventListener('touchmove', e => {
             currentX = e.touches[0].clientX;
-            if (currentX - startX < 0) el.style.transform = `translateX(${currentX - startX}px)`;
+            let diff = currentX - startX;
+            // Un-revised can only swipe left (<0), Revised can only swipe right (>0)
+            if (!isAlreadyRevised && diff < 0) el.style.transform = `translateX(${diff}px)`;
+            if (isAlreadyRevised && diff > 0) el.style.transform = `translateX(${diff}px)`;
         }, {passive: true});
+
         el.addEventListener('touchend', () => {
-            if (currentX - startX < -100) {
-                el.classList.add('swiping-out');
-                setTimeout(() => {
-                    const r = userData.find(u => u.id === id);
-                    r.revised = true; r.lastDate = new Date().toLocaleDateString('en-GB');
-                    saveData(); renderMainScreen();
-                }, 300);
-            } else el.style.transform = `translateX(0px)`;
+            el.style.transition = 'transform 0.2s ease-out';
+            let diff = currentX - startX;
+
+            if (!isAlreadyRevised && diff < -100) {
+                el.classList.add('anim-left');
+                updateStatus(id, true);
+            } else if (isAlreadyRevised && diff > 100) {
+                el.classList.add('anim-right');
+                updateStatus(id, false);
+            } else {
+                el.style.transform = `translateX(0px)`;
+            }
+            startX = 0; currentX = 0; // Reset
         });
     }
 
-    // --- SYNC FEATURE ---
-    function syncToCloud() {
-        const dataStr = btoa(JSON.stringify({userData, cycleStartDate})); // Encodes to Base64
-        const shareLink = window.location.href.split('?')[0] + "?data=" + dataStr;
-
-        // Use navigator share if available (great for phone)
-        if (navigator.share) {
-            navigator.share({ title: 'Quran Tracker Backup', url: shareLink });
-        } else {
-            prompt("Copy this link to save your backup:", shareLink);
-        }
+    function updateStatus(id, status) {
+        setTimeout(() => {
+            const r = userData.find(u => u.id === id);
+            r.revised = status;
+            if (status) r.lastDate = new Date().toLocaleDateString('en-GB');
+            saveData(); renderMainScreen();
+        }, 300);
     }
 
-    function restoreFromCloud() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const data = urlParams.get('data');
-        if (data) {
-            try {
-                const decoded = JSON.parse(atob(data));
-                userData = decoded.userData;
-                cycleStartDate = decoded.cycleStartDate;
-                saveData();
-                localStorage.setItem('cycleStartDate', cycleStartDate);
-                alert("Data restored successfully!");
-                window.location.href = window.location.href.split('?')[0]; // Clean URL
-            } catch(e) { alert("Invalid backup link."); }
-        } else {
-            alert("No data found in URL. To restore, please use a backup link generated by this app.");
-        }
-    }
-
-    // Modal helpers
+    // Long Press
     const resetBtn = document.getElementById('reset-fab');
     resetBtn.addEventListener('touchstart', () => {
-        longPressTimer = setTimeout(() => {
-            document.getElementById('modal-title').innerText = "Restart Cycle?";
-            document.getElementById('modal-confirm-btn').onclick = executeRestart;
-            document.getElementById('confirm-modal').style.display = 'flex';
-        }, 800);
+        longPressTimer = setTimeout(() => { document.getElementById('confirm-modal').style.display = 'flex'; }, 800);
     });
     resetBtn.addEventListener('touchend', () => clearTimeout(longPressTimer));
 
