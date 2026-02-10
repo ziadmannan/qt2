@@ -72,7 +72,6 @@
         .surah-name { font-size: 1.05em; font-weight: 500; }
         .last-revised { font-size: 0.75em; color: var(--subtext); margin-top: 2px; }
 
-        /* FLAT BOOK ICON STYLE */
         .quran-link {
             padding: 8px;
             color: var(--primary);
@@ -96,9 +95,58 @@
         #toast-undo-btn { color: #ff9800; font-weight: bold; cursor: pointer; margin-left: 20px; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-bg); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; }
-        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; text-align: center; }
+        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
 
-        #selection-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--card-bg); z-index: 200; display: none; flex-direction: column; }
+        /* THEMED SELECTION SCREEN */
+        #selection-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 200; display: none; flex-direction: column; }
+        .selection-header {
+            padding: 15px 20px;
+            background: var(--primary);
+            color: var(--header-text);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 201;
+        }
+        .selection-header h3 { margin: 0 0 12px 0; font-size: 1.1rem; font-weight: 500; }
+        .selection-controls { display: flex; align-items: center; gap: 10px; }
+
+        #search-input {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        #search-input::placeholder { color: rgba(255,255,255,0.7); }
+
+        .done-btn {
+            background: white;
+            color: var(--primary);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .full-list-item {
+            padding: 16px 20px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .full-list-item.selected {
+            background: var(--selection-bg);
+            border-left: 5px solid var(--primary);
+        }
+        .full-list-item .surah-label { font-size: 1rem; font-weight: 500; }
+        .full-list-item .check-mark { color: var(--primary); font-size: 1.2rem; }
 
         @keyframes slideOutLeft { to { transform: translateX(-100%); opacity: 0; } }
         @keyframes slideOutRight { to { transform: translateX(100%); opacity: 0; } }
@@ -139,16 +187,20 @@
     <div class="modal-content">
         <h3>Restart Cycle?</h3>
         <p>This resets progress but keeps history.</p>
-        <button onclick="closeModal()">Cancel</button>
-        <button onclick="executeRestart()" style="color:red">Restart</button>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button onclick="closeModal()" style="flex:1; padding:10px; border:none; border-radius:5px;">Cancel</button>
+            <button onclick="executeRestart()" style="flex:1; padding:10px; border:none; border-radius:5px; background:var(--undo); color:white; font-weight:bold;">Restart</button>
+        </div>
     </div>
 </div>
 
 <div id="selection-screen">
-    <div style="padding:20px; background:var(--overlay-header)">
-        <button onclick="toggleSelectionScreen()" style="float:right">Done</button>
+    <div class="selection-header">
         <h3>Manage Surahs</h3>
-        <input type="text" id="search-input" placeholder="Search..." oninput="renderFullList()">
+        <div class="selection-controls">
+            <input type="text" id="search-input" placeholder="Search Surahs..." oninput="renderFullList()">
+            <button class="done-btn" onclick="toggleSelectionScreen()">Done</button>
+        </div>
     </div>
     <div id="full-surah-list" style="overflow-y:auto; flex:1"></div>
 </div>
@@ -161,7 +213,6 @@
     let streakData = JSON.parse(localStorage.getItem('streakData')) || { count: 0, lastDate: null };
     let toastTimeout;
 
-    // SVG for Flat Book Icon
     const flatBookIcon = `
         <svg viewBox="0 0 24 24">
             <path d="M21,4H3C1.89,4 1,4.89 1,6V19A2,2 0 0,0 3,21H21A2,2 0 0,0 23,19V6C23,4.89 22.1,4 21,4M21,19H12V6H21V19M3,19V6H12V19H3Z" />
@@ -303,9 +354,15 @@
 
     function saveStreak() { localStorage.setItem('streakData', JSON.stringify(streakData)); }
     function saveData() { localStorage.setItem('hifzData', JSON.stringify(userData)); }
+
     function toggleSelectionScreen() {
         const s = document.getElementById('selection-screen');
-        s.style.display = s.style.display === 'flex' ? 'none' : 'flex';
+        const isOpen = s.style.display === 'flex';
+        s.style.display = isOpen ? 'none' : 'flex';
+        if (!isOpen) {
+            document.getElementById('search-input').value = '';
+            renderFullList();
+        }
         renderMainScreen();
     }
 
@@ -313,19 +370,47 @@
         const filter = document.getElementById('search-input').value.toLowerCase();
         const container = document.getElementById('full-surah-list');
         container.innerHTML = '';
+
         surahs.filter(s => s.name.toLowerCase().includes(filter)).forEach(s => {
-            const sel = userData.some(u => u.id === s.id);
+            const isSelected = userData.some(u => u.id === s.id);
             const div = document.createElement('div');
-            div.style = "padding:15px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between";
-            div.innerHTML = `<span>${s.id}. ${s.name}</span> <span>${sel ? '✅' : '+'}</span>`;
+            div.className = `full-list-item ${isSelected ? 'selected' : ''}`;
+
+            div.innerHTML = `
+                <span class="surah-label"><strong>${s.id}.</strong> ${s.name}</span>
+                <span class="check-mark">${isSelected ? '✅' : '+'}</span>
+            `;
+
             div.onclick = () => {
                 const i = userData.findIndex(u => u.id === s.id);
-                if (i > -1) userData.splice(i, 1); else userData.push({id: s.id, revised: false, lastDate: null});
-                saveData(); renderFullList();
+                if (i > -1) {
+                    userData.splice(i, 1);
+                } else {
+                    userData.push({id: s.id, revised: false, lastDate: null});
+                }
+                saveData();
+                renderFullList();
             };
             container.appendChild(div);
         });
     }
+
+    // Modal helpers
+    function closeModal() { document.getElementById('confirm-modal').style.display = 'none'; }
+    function executeRestart() {
+        userData.forEach(u => u.revised = false);
+        cycleStartDate = new Date().toISOString();
+        localStorage.setItem('cycleStartDate', cycleStartDate);
+        saveData(); closeModal(); renderMainScreen();
+    }
+
+    // Reset hold detection
+    const resetBtn = document.getElementById('reset-fab');
+    let longPressTimer;
+    resetBtn.addEventListener('touchstart', () => {
+        longPressTimer = setTimeout(() => { document.getElementById('confirm-modal').style.display = 'flex'; }, 800);
+    });
+    resetBtn.addEventListener('touchend', () => clearTimeout(longPressTimer));
 
     window.onload = loadSurahData;
 </script>
