@@ -18,8 +18,9 @@
             --selection-bg: #e8f5e9;
             --header-text: #ffffff;
             --nav-bg: #ffffff;
-            --undo: #1b5e20; /* Darker Green for Undo/Revised state */
+            --undo: #d32f2f;
             --streak-fire: #ff9800;
+            --nav-outline: transparent;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -33,7 +34,7 @@
                 --selection-bg: #1b2e1c;
                 --header-text: #e0e0e0;
                 --nav-bg: #1e1e1e;
-                --undo: #0a2e0c;
+                --nav-outline: #ffffff;
             }
         }
 
@@ -54,9 +55,16 @@
 
         .container { max-width: 600px; margin: auto; padding: 15px 15px 100px 15px; box-sizing: border-box; min-height: 50vh; display: flex; flex-direction: column; }
 
-        .empty-state { text-align: center; margin: auto; padding: 40px 20px; color: var(--subtext); }
+        .empty-state { text-align: center; margin: auto; padding: 40px 20px; color: var(--subtext); width: 100%; max-width: 400px; box-sizing: border-box; }
         .empty-state h2 { color: var(--primary); margin-bottom: 10px; font-size: 1.4rem; }
-        .empty-state p { font-size: 1rem; line-height: 1.5; }
+
+        /* Carousel Styles */
+        .carousel-container { position: relative; overflow: hidden; margin-top: 10px; touch-action: pan-y; }
+        .carousel-track { display: flex; transition: transform 0.5s ease-in-out; }
+        .carousel-slide { min-width: 100%; box-sizing: border-box; padding: 0 15px; font-size: 1rem; line-height: 1.5; pointer-events: none; }
+        .carousel-dots { display: flex; justify-content: center; gap: 8px; margin-top: 20px; }
+        .dot { width: 8px; height: 8px; background: var(--border); border-radius: 50%; cursor: pointer; transition: all 0.3s; }
+        .dot.active { background: var(--primary); transform: scale(1.2); }
 
         .surah-wrapper { position: relative; margin-bottom: 12px; overflow: hidden; border-radius: 12px; background: var(--primary); flex-shrink: 0; }
         .surah-wrapper.is-revised { background: var(--undo); }
@@ -71,19 +79,26 @@
         .bg-right { justify-content: flex-end; }
 
         .surah-card {
-            background: var(--card-bg); padding: 16px; display: flex; align-items: center;
+            background: var(--card-bg); padding: 12px 16px; display: flex; align-items: center;
             position: relative; z-index: 2; border: 1px solid var(--border); border-radius: 12px;
             transition: transform 0.1s ease-out; touch-action: pan-y;
         }
         .surah-card.revised-style { opacity: 0.6; border-style: dashed; }
-        .surah-num { font-weight: bold; color: var(--primary); margin-right: 15px; width: 25px; }
+
+        .status-tick {
+            width: 24px; height: 24px; margin-right: 12px; color: var(--border); cursor: pointer; flex-shrink: 0;
+            transition: color 0.2s;
+        }
+        .status-tick.active { color: var(--primary); }
+
+        .surah-num { font-weight: bold; color: var(--primary); margin-right: 15px; width: 22px; font-size: 0.95rem; }
         .surah-info { display: flex; flex-direction: column; flex-grow: 1; }
-        .surah-name { font-size: 1.05em; font-weight: 500; }
-        .last-revised { font-size: 0.75em; color: var(--subtext); margin-top: 2px; }
+        .surah-name { font-size: 1rem; font-weight: 500; }
+        .last-revised { font-size: 0.7rem; color: var(--subtext); margin-top: 1px; }
 
         .icon-load { display: flex; align-items: center; justify-content: center; }
         .icon-load svg { width: 100%; height: 100%; fill: currentColor; }
-        .quran-link { padding: 8px; color: var(--primary); text-decoration: none; border-radius: 8px; width: 24px; height: 24px; }
+        .quran-link { padding: 6px; color: var(--primary); text-decoration: none; border-radius: 8px; width: 20px; height: 20px; }
 
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
@@ -98,52 +113,26 @@
             border: none; padding: 0; font-family: inherit; cursor: pointer;
         }
         .nav-item.active { color: var(--primary); }
-        .nav-icon-wrap { width: 24px; height: 24px; margin-bottom: 2px; }
+        .nav-icon-wrap {
+            width: 24px; height: 24px; margin-bottom: 2px;
+            filter: drop-shadow(0 0 1px var(--nav-outline));
+        }
         .nav-label { font-size: 0.7rem; font-weight: 500; text-align: center; padding: 0 4px; }
 
-        .confetti {
-            position: fixed; width: 10px; height: 10px; background-color: #f00;
-            top: -10px; z-index: 1000; pointer-events: none;
-        }
-
+        .confetti { position: fixed; width: 10px; height: 10px; top: -10px; z-index: 1000; pointer-events: none; }
         #selection-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 200; display: none; flex-direction: column; }
-        .selection-header { padding: 20px; background: var(--primary); color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .selection-header h3 { margin: 0 0 15px 0; font-weight: 500; }
-        .search-container { position: relative; }
-        #search-input { width: 100%; padding: 12px 15px; border-radius: 10px; border: none; font-size: 1rem; box-sizing: border-box; background: rgba(255,255,255,0.2); color: white; }
-        #search-input::placeholder { color: rgba(255,255,255,0.7); }
-        #search-input:focus { outline: none; background: rgba(255,255,255,0.3); }
-
+        .selection-header { padding: 20px; background: var(--primary); color: white; }
+        #search-input { width: 100%; padding: 12px 15px; border-radius: 10px; border: none; background: rgba(255,255,255,0.2); color: white; font-size: 1rem; box-sizing: border-box; }
         .selection-list { padding: 15px; overflow-y: auto; flex: 1; }
-        .full-list-item {
-            padding: 14px 18px; background: var(--card-bg); border-radius: 12px; margin-bottom: 8px;
-            display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border);
-            transition: all 0.2s;
-        }
+        .full-list-item { padding: 14px 18px; background: var(--card-bg); border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
         .full-list-item.selected { border-color: var(--primary); background: var(--selection-bg); }
-        .full-list-item strong { color: var(--primary); margin-right: 10px; }
-        .check-pill { font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; background: var(--border); color: var(--subtext); font-weight: bold; }
-        .full-list-item.selected .check-pill { background: var(--primary); color: white; }
-
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5); display: none;
-            align-items: center; justify-content: center; z-index: 300;
-        }
-        .modal-content {
-            background: var(--card-bg); padding: 25px; border-radius: 15px;
-            text-align: center; max-width: 300px; width: 85%;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 300; }
+        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; text-align: center; max-width: 300px; width: 85%; }
         @keyframes slideOutLeft { to { transform: translateX(-100%); opacity: 0; } }
         @keyframes slideOutRight { to { transform: translateX(100%); opacity: 0; } }
         .anim-left { animation: slideOutLeft 0.3s forwards; }
         .anim-right { animation: slideOutRight 0.3s forwards; }
-
-        @keyframes fall {
-            to { transform: translateY(100vh) rotate(720deg); }
-        }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
     </style>
 </head>
 <body>
@@ -195,11 +184,9 @@
 
 <div id="selection-screen">
     <div class="selection-header">
-        <button onclick="toggleSelectionScreen()" style="float:right; padding:8px 18px; border-radius:20px; border:none; background:white; color:var(--primary); font-weight:bold; font-size: 0.85rem;">Done</button>
+        <button onclick="toggleSelectionScreen()" style="float:right; padding:8px 18px; border-radius:20px; border:none; background:white; color:var(--primary); font-weight:bold;">Done</button>
         <h3>Manage List</h3>
-        <div class="search-container">
-            <input type="text" id="search-input" placeholder="Search Surahs..." oninput="renderFullList()">
-        </div>
+        <input type="text" id="search-input" placeholder="Search Surahs..." oninput="renderFullList()">
     </div>
     <div id="full-surah-list" class="selection-list"></div>
 </div>
@@ -212,21 +199,25 @@
     let streakData = JSON.parse(localStorage.getItem('streakData')) || { count: 0, lastDate: null };
     let toastTimeout;
 
+    // Carousel State
+    let carouselInterval;
+    let currentSlide = 0;
+    const slidesData = [
+        '"Add Surahs" to your revision tracker and start revising.',
+        "Swipe left on a surah when you've revised it. Swipe right to undo the revision. Or you can click the tick icon.",
+        'To hide surahs that you\'ve revised, press the "Show/Hide Surahs".',
+        'When you\'ve revised all your surahs, you can "Restart Revision" and start again!'
+    ];
+
     function loadIcons(container = document) {
         container.querySelectorAll('.icon-load').forEach(el => {
             const src = el.getAttribute('data-src');
             if (!src) return;
-            fetch(src)
-                .then(response => response.text())
-                .then(data => {
-                    el.innerHTML = data;
-                    const svg = el.querySelector('svg');
-                    if (svg) {
-                        svg.setAttribute('width', '100%');
-                        svg.setAttribute('height', '100%');
-                    }
-                })
-                .catch(err => console.error("Error loading SVG:", err));
+            fetch(src).then(r => r.text()).then(data => {
+                el.innerHTML = data;
+                const s = el.querySelector('svg');
+                if (s) { s.setAttribute('width', '100%'); s.setAttribute('height', '100%'); s.setAttribute('fill', 'currentColor'); }
+            });
         });
     }
 
@@ -241,27 +232,27 @@
     function fireConfetti() {
         const colors = ['#2e7d32', '#4caf50', '#81c784', '#ff9800', '#ffffff'];
         for (let i = 0; i < 50; i++) {
-            const confetti = document.createElement('div');
-            confetti.className = 'confetti';
-            confetti.style.left = Math.random() * 100 + 'vw';
-            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            confetti.style.width = Math.random() * 8 + 4 + 'px';
-            confetti.style.height = confetti.style.width;
-            confetti.style.animation = `fall ${Math.random() * 3 + 2}s linear forwards`;
-            document.body.appendChild(confetti);
-            setTimeout(() => confetti.remove(), 5000);
+            const c = document.createElement('div');
+            c.className = 'confetti';
+            c.style.left = Math.random() * 100 + 'vw';
+            c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            c.style.width = c.style.height = Math.random() * 8 + 4 + 'px';
+            c.style.animation = `fall ${Math.random() * 3 + 2}s linear forwards`;
+            document.body.appendChild(c);
+            setTimeout(() => c.remove(), 5000);
         }
     }
 
     function renderMainScreen() {
+        if (carouselInterval) clearInterval(carouselInterval);
+
         const total = userData.length;
         const revisedCount = userData.filter(u => u.revised).length;
         document.getElementById('progress-text').innerText = `${revisedCount}/${total}`;
         document.getElementById('progress-bar').style.width = `${total > 0 ? (revisedCount/total)*100 : 0}%`;
 
         const navEye = document.getElementById('nav-eye');
-        if (showRevised) navEye.classList.add('active');
-        else navEye.classList.remove('active');
+        showRevised ? navEye.classList.add('active') : navEye.classList.remove('active');
 
         const container = document.getElementById('main-list');
         container.innerHTML = '';
@@ -274,14 +265,28 @@
         if (list.length === 0) {
             const emptyDiv = document.createElement('div');
             emptyDiv.className = 'empty-state';
+
             if (userData.length === 0) {
-                emptyDiv.innerHTML = `<h2>Start Revising</h2><p>"Add Surahs" to your revision tracker and start revising. Swipe left on a surah when you've revised it. Swipe right to undo the revision. To hide surahs that you've revised, press the "Show/Hide Surahs". When you've revised all your surahs, you can "Restart Revision" and start again!</p>`;
+                emptyDiv.innerHTML = `
+                    <h2>Start Revising</h2>
+                    <div class="carousel-container" id="carousel-container">
+                        <div class="carousel-track" id="carousel-track">
+                            ${slidesData.map(text => `<div class="carousel-slide">${text}</div>`).join('')}
+                        </div>
+                        <div class="carousel-dots" id="carousel-dots">
+                            ${slidesData.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="setSlide(${i})"></div>`).join('')}
+                        </div>
+                    </div>`;
+                container.appendChild(emptyDiv);
+                initCarouselSwipe();
+                startCarousel();
             } else if (!showRevised && revisedCount === total) {
                 emptyDiv.innerHTML = `<h2>Well Done!</h2><p>Alhamdulillah you've completed revising all your surahs. Start revising again by restarting your revision cycle</p>`;
+                container.appendChild(emptyDiv);
             } else {
                 emptyDiv.innerHTML = `<p>No surahs found in this view.</p>`;
+                container.appendChild(emptyDiv);
             }
-            container.appendChild(emptyDiv);
             return;
         }
 
@@ -292,6 +297,7 @@
             wrapper.innerHTML = `
                 <div class="swipe-bg ${r.revised ? 'bg-left' : 'bg-right'}">${r.revised ? 'UNDO ↺' : 'DONE ✓'}</div>
                 <div class="surah-card ${r.revised ? 'revised-style' : ''}">
+                    <div class="status-tick ${r.revised ? 'active' : ''} icon-load" data-src="tick.svg" onclick="toggleStatus(${s.id}); event.stopPropagation()"></div>
                     <span class="surah-num">${s.id}</span>
                     <div class="surah-info">
                         <span class="surah-name">${s.name}</span>
@@ -303,6 +309,80 @@
             container.appendChild(wrapper);
         });
         loadIcons(container);
+    }
+
+    // Carousel Swipe Logic
+    function initCarouselSwipe() {
+        const container = document.getElementById('carousel-container');
+        const track = document.getElementById('carousel-track');
+        if (!container || !track) return;
+
+        let startX = 0, currentX = 0, isSwiping = false;
+
+        container.addEventListener('touchstart', e => {
+            startX = e.touches[0].clientX;
+            track.style.transition = 'none';
+            clearInterval(carouselInterval);
+            isSwiping = true;
+        }, {passive: true});
+
+        container.addEventListener('touchmove', e => {
+            if (!isSwiping) return;
+            currentX = e.touches[0].clientX;
+            const diff = currentX - startX;
+            const offset = -(currentSlide * 100);
+            const movePercent = diff / container.offsetWidth * 100;
+            track.style.transform = `translateX(${offset + movePercent}%)`;
+        }, {passive: true});
+
+        container.addEventListener('touchend', e => {
+            if (!isSwiping) return;
+            isSwiping = false;
+            track.style.transition = 'transform 0.5s ease-in-out';
+            const diff = currentX - startX;
+            const threshold = container.offsetWidth * 0.2;
+
+            if (diff < -threshold && currentSlide < slidesData.length - 1) {
+                currentSlide++;
+            } else if (diff > threshold && currentSlide > 0) {
+                currentSlide--;
+            }
+            updateCarousel();
+            startCarousel(); // Resume auto-play
+        });
+    }
+
+    function startCarousel() {
+        if (carouselInterval) clearInterval(carouselInterval);
+        carouselInterval = setInterval(() => {
+            currentSlide = (currentSlide + 1) % slidesData.length;
+            updateCarousel();
+        }, 4000);
+    }
+
+    function setSlide(index) {
+        clearInterval(carouselInterval);
+        currentSlide = index;
+        updateCarousel();
+        startCarousel();
+    }
+
+    function updateCarousel() {
+        const track = document.getElementById('carousel-track');
+        const dots = document.getElementById('carousel-dots');
+        if (!track || !dots) return;
+
+        track.style.transition = 'transform 0.5s ease-in-out';
+        track.style.transform = `translateX(-${currentSlide * 100}%)`;
+        Array.from(dots.children).forEach((dot, i) => {
+            dot.classList.toggle('active', i === currentSlide);
+        });
+    }
+
+    function toggleStatus(id) {
+        const s = surahs.find(x => x.id === id);
+        const r = userData.find(u => u.id === id);
+        if (r && s) updateStatus(id, !r.revised, s.name, true);
     }
 
     function setupSwipe(el, id, isAlreadyRevised, surahName) {
@@ -317,14 +397,16 @@
         el.addEventListener('touchend', () => {
             el.style.transition = 'transform 0.2s ease-out';
             let diff = currentX - startX;
-            if (isSwiping && Math.abs(diff) > 100) { el.classList.add(diff < 0 ? 'anim-left' : 'anim-right'); updateStatus(id, diff < 0, surahName); }
-            else { el.style.transform = `translateX(0px)`; bg.style.opacity = "0"; }
+            if (isSwiping && Math.abs(diff) > 100) {
+                el.classList.add(diff < 0 ? 'anim-left' : 'anim-right');
+                updateStatus(id, diff < 0, surahName);
+            } else { el.style.transform = `translateX(0px)`; bg.style.opacity = "0"; }
             isSwiping = false;
         });
     }
 
-    function updateStatus(id, status, surahName) {
-        setTimeout(() => {
+    function updateStatus(id, status, surahName, skipAnim = false) {
+        const applyUpdate = () => {
             const r = userData.find(u => u.id === id);
             if (!r) return;
             r.revised = status;
@@ -335,19 +417,15 @@
                 if (userData.every(u => u.revised)) fireConfetti();
             }
             saveData(); renderMainScreen();
-        }, 300);
+        };
+        skipAnim ? applyUpdate() : setTimeout(applyUpdate, 300);
     }
 
-    function toggleShowRevised() {
-        showRevised = !showRevised;
-        localStorage.setItem('showRevisedSetting', JSON.stringify(showRevised));
-        renderMainScreen();
-    }
+    function toggleShowRevised() { showRevised = !showRevised; localStorage.setItem('showRevisedSetting', JSON.stringify(showRevised)); renderMainScreen(); }
     function toggleSelectionScreen() {
         const s = document.getElementById('selection-screen');
-        const isOpening = s.style.display !== 'flex';
-        s.style.display = isOpening ? 'flex' : 'none';
-        if (!isOpening) renderMainScreen();
+        s.style.display = (s.style.display !== 'flex') ? 'flex' : 'none';
+        if (s.style.display === 'none') renderMainScreen();
     }
 
     function renderFullList() {
@@ -361,7 +439,7 @@
             div.innerHTML = `<span><strong>${s.id}</strong> ${s.name}</span><span class="check-pill">${isSelected ? 'ADDED' : 'ADD'}</span>`;
             div.onclick = () => {
                 const i = userData.findIndex(u => u.id === s.id);
-                if (i > -1) userData.splice(i, 1); else userData.push({id: s.id, revised: false, lastDate: null});
+                i > -1 ? userData.splice(i, 1) : userData.push({id: s.id, revised: false, lastDate: null});
                 saveData(); renderFullList();
             };
             container.appendChild(div);
@@ -371,7 +449,7 @@
     function showToast(name, id) {
         const t = document.getElementById("toast");
         document.getElementById("toast-message").innerText = `${name} Revised`;
-        document.getElementById("toast-undo-btn").onclick = () => { updateStatus(id, false, name); hideToast(); };
+        document.getElementById("toast-undo-btn").onclick = () => { updateStatus(id, false, name, true); hideToast(); };
         t.style.visibility = "visible"; t.style.opacity = "1";
         clearTimeout(toastTimeout); toastTimeout = setTimeout(hideToast, 4000);
     }
@@ -384,11 +462,7 @@
             if (streakData.lastDate !== yest.toDateString()) streakData.count = 0;
         }
         document.getElementById('streak-count').innerText = streakData.count;
-
-        const start = new Date(cycleStartDate);
-        const today = new Date();
-        const diffTime = Math.abs(today - start);
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        const diffDays = Math.floor(Math.abs(new Date() - new Date(cycleStartDate)) / 86400000) + 1;
         document.getElementById('cycle-days').innerText = `Day ${diffDays}`;
     }
 
@@ -397,16 +471,7 @@
     function saveData() { localStorage.setItem('hifzData', JSON.stringify(userData)); }
     function openResetModal() { document.getElementById('confirm-modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('confirm-modal').style.display = 'none'; }
-
-    function executeRestart() {
-        userData.forEach(u => u.revised = false);
-        cycleStartDate = new Date().toISOString();
-        localStorage.setItem('cycleStartDate', cycleStartDate);
-        saveData();
-        closeModal();
-        calculateStreak();
-        renderMainScreen();
-    }
+    function executeRestart() { userData.forEach(u => u.revised = false); cycleStartDate = new Date().toISOString(); localStorage.setItem('cycleStartDate', cycleStartDate); saveData(); closeModal(); calculateStreak(); renderMainScreen(); }
 
     window.onload = () => { loadSurahData(); loadIcons(); };
 </script>
