@@ -1,6 +1,6 @@
 {
   "name": "Quran Revision Tracker",
-  "short_name": "Hifz",
+  "short_name": "Quran Tracker",
   "description": "Track your Quran revision progress and maintain your streak.",
   "start_url": "./index.html",
   "display": "standalone",

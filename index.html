@@ -58,7 +58,6 @@
         .empty-state { text-align: center; margin: auto; padding: 40px 20px; color: var(--subtext); width: 100%; max-width: 400px; box-sizing: border-box; }
         .empty-state h2 { color: var(--primary); margin-bottom: 10px; font-size: 1.4rem; }
 
-        /* Carousel Styles */
         .carousel-container { position: relative; overflow: hidden; margin-top: 10px; touch-action: pan-y; }
         .carousel-track { display: flex; transition: transform 0.5s ease-in-out; }
         .carousel-slide { min-width: 100%; box-sizing: border-box; padding: 0 15px; font-size: 1rem; line-height: 1.5; pointer-events: none; }
@@ -199,7 +198,6 @@
     let streakData = JSON.parse(localStorage.getItem('streakData')) || { count: 0, lastDate: null };
     let toastTimeout;
 
-    // Carousel State
     let carouselInterval;
     let currentSlide = 0;
     const slidesData = [
@@ -245,18 +243,14 @@
 
     function renderMainScreen() {
         if (carouselInterval) clearInterval(carouselInterval);
-
         const total = userData.length;
         const revisedCount = userData.filter(u => u.revised).length;
         document.getElementById('progress-text').innerText = `${revisedCount}/${total}`;
         document.getElementById('progress-bar').style.width = `${total > 0 ? (revisedCount/total)*100 : 0}%`;
-
         const navEye = document.getElementById('nav-eye');
         showRevised ? navEye.classList.add('active') : navEye.classList.remove('active');
-
         const container = document.getElementById('main-list');
         container.innerHTML = '';
-
         const list = surahs.filter(s => {
             const r = userData.find(u => u.id === s.id);
             return r && (showRevised ? true : !r.revised);
@@ -265,7 +259,6 @@
         if (list.length === 0) {
             const emptyDiv = document.createElement('div');
             emptyDiv.className = 'empty-state';
-
             if (userData.length === 0) {
                 emptyDiv.innerHTML = `
                     <h2>Start Revising</h2>
@@ -311,21 +304,17 @@
         loadIcons(container);
     }
 
-    // Carousel Swipe Logic
     function initCarouselSwipe() {
         const container = document.getElementById('carousel-container');
         const track = document.getElementById('carousel-track');
         if (!container || !track) return;
-
         let startX = 0, currentX = 0, isSwiping = false;
-
         container.addEventListener('touchstart', e => {
             startX = e.touches[0].clientX;
             track.style.transition = 'none';
             clearInterval(carouselInterval);
             isSwiping = true;
         }, {passive: true});
-
         container.addEventListener('touchmove', e => {
             if (!isSwiping) return;
             currentX = e.touches[0].clientX;
@@ -334,21 +323,16 @@
             const movePercent = diff / container.offsetWidth * 100;
             track.style.transform = `translateX(${offset + movePercent}%)`;
         }, {passive: true});
-
         container.addEventListener('touchend', e => {
             if (!isSwiping) return;
             isSwiping = false;
             track.style.transition = 'transform 0.5s ease-in-out';
             const diff = currentX - startX;
             const threshold = container.offsetWidth * 0.2;
-
-            if (diff < -threshold && currentSlide < slidesData.length - 1) {
-                currentSlide++;
-            } else if (diff > threshold && currentSlide > 0) {
-                currentSlide--;
-            }
+            if (diff < -threshold && currentSlide < slidesData.length - 1) currentSlide++;
+            else if (diff > threshold && currentSlide > 0) currentSlide--;
             updateCarousel();
-            startCarousel(); // Resume auto-play
+            startCarousel();
         });
     }
 
@@ -371,12 +355,9 @@
         const track = document.getElementById('carousel-track');
         const dots = document.getElementById('carousel-dots');
         if (!track || !dots) return;
-
         track.style.transition = 'transform 0.5s ease-in-out';
         track.style.transform = `translateX(-${currentSlide * 100}%)`;
-        Array.from(dots.children).forEach((dot, i) => {
-            dot.classList.toggle('active', i === currentSlide);
-        });
+        Array.from(dots.children).forEach((dot, i) => dot.classList.toggle('active', i === currentSlide));
     }
 
     function toggleStatus(id) {
@@ -474,6 +455,15 @@
     function executeRestart() { userData.forEach(u => u.revised = false); cycleStartDate = new Date().toISOString(); localStorage.setItem('cycleStartDate', cycleStartDate); saveData(); closeModal(); calculateStreak(); renderMainScreen(); }
 
     window.onload = () => { loadSurahData(); loadIcons(); };
+
+    // SERVICE WORKER REGISTRATION
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('Service Worker registered!'))
+                .catch(err => console.log('Service Worker failed:', err));
+        });
+    }
 </script>
 </body>
 </html>
