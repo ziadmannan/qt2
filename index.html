@@ -18,7 +18,7 @@
             --selection-bg: #e8f5e9;
             --header-text: #ffffff;
             --nav-bg: #ffffff;
-            --undo: #d32f2f;
+            --undo: #1b5e20; /* Darker Green for Undo/Revised state */
             --streak-fire: #ff9800;
         }
 
@@ -33,6 +33,7 @@
                 --selection-bg: #1b2e1c;
                 --header-text: #e0e0e0;
                 --nav-bg: #1e1e1e;
+                --undo: #0a2e0c;
             }
         }
 
@@ -98,7 +99,7 @@
         }
         .nav-item.active { color: var(--primary); }
         .nav-icon-wrap { width: 24px; height: 24px; margin-bottom: 2px; }
-        .nav-label { font-size: 0.7rem; font-weight: 500; }
+        .nav-label { font-size: 0.7rem; font-weight: 500; text-align: center; padding: 0 4px; }
 
         .confetti {
             position: fixed; width: 10px; height: 10px; background-color: #f00;
@@ -124,8 +125,16 @@
         .check-pill { font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; background: var(--border); color: var(--subtext); font-weight: bold; }
         .full-list-item.selected .check-pill { background: var(--primary); color: white; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 300; padding: 20px; }
-        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; text-align: center; max-width: 300px; }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); display: none;
+            align-items: center; justify-content: center; z-index: 300;
+        }
+        .modal-content {
+            background: var(--card-bg); padding: 25px; border-radius: 15px;
+            text-align: center; max-width: 300px; width: 85%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
 
         @keyframes slideOutLeft { to { transform: translateX(-100%); opacity: 0; } }
         @keyframes slideOutRight { to { transform: translateX(100%); opacity: 0; } }
@@ -156,15 +165,15 @@
 <nav class="bottom-nav">
     <button class="nav-item" onclick="openResetModal()">
         <span class="nav-icon-wrap icon-load" data-src="restart.svg"></span>
-        <span class="nav-label">Restart</span>
+        <span class="nav-label">Restart Revision</span>
     </button>
     <button class="nav-item" id="nav-eye" onclick="toggleShowRevised()">
         <span class="nav-icon-wrap icon-load" data-src="filter.svg"></span>
-        <span class="nav-label">Revised</span>
+        <span class="nav-label">Show/Hide Revised</span>
     </button>
     <button class="nav-item" onclick="toggleSelectionScreen()">
         <span class="nav-icon-wrap icon-load" data-src="manage.svg"></span>
-        <span class="nav-label">Add</span>
+        <span class="nav-label">Add Surahs</span>
     </button>
 </nav>
 
@@ -199,7 +208,7 @@
     let surahs = [];
     let userData = JSON.parse(localStorage.getItem('hifzData')) || [];
     let cycleStartDate = localStorage.getItem('cycleStartDate') || new Date().toISOString();
-    let showRevised = false;
+    let showRevised = localStorage.getItem('showRevisedSetting') === null ? true : JSON.parse(localStorage.getItem('showRevisedSetting'));
     let streakData = JSON.parse(localStorage.getItem('streakData')) || { count: 0, lastDate: null };
     let toastTimeout;
 
@@ -266,7 +275,7 @@
             const emptyDiv = document.createElement('div');
             emptyDiv.className = 'empty-state';
             if (userData.length === 0) {
-                emptyDiv.innerHTML = `<h2>Start Revising</h2><p>Add surahs to your revision tracker and start revising</p>`;
+                emptyDiv.innerHTML = `<h2>Start Revising</h2><p>"Add Surahs" to your revision tracker and start revising. Swipe left on a surah when you've revised it. Swipe right to undo the revision. To hide surahs that you've revised, press the "Show/Hide Surahs". When you've revised all your surahs, you can "Restart Revision" and start again!</p>`;
             } else if (!showRevised && revisedCount === total) {
                 emptyDiv.innerHTML = `<h2>Well Done!</h2><p>Alhamdulillah you've completed revising all your surahs. Start revising again by restarting your revision cycle</p>`;
             } else {
@@ -329,7 +338,11 @@
         }, 300);
     }
 
-    function toggleShowRevised() { showRevised = !showRevised; renderMainScreen(); }
+    function toggleShowRevised() {
+        showRevised = !showRevised;
+        localStorage.setItem('showRevisedSetting', JSON.stringify(showRevised));
+        renderMainScreen();
+    }
     function toggleSelectionScreen() {
         const s = document.getElementById('selection-screen');
         const isOpening = s.style.display !== 'flex';
@@ -363,20 +376,37 @@
         clearTimeout(toastTimeout); toastTimeout = setTimeout(hideToast, 4000);
     }
     function hideToast() { const t = document.getElementById("toast"); t.style.opacity = "0"; setTimeout(() => t.style.visibility="hidden", 300); }
+
     function calculateStreak() {
-        const today = new Date().toDateString();
-        if (streakData.lastDate && streakData.lastDate !== today) {
+        const todayStr = new Date().toDateString();
+        if (streakData.lastDate && streakData.lastDate !== todayStr) {
             const yest = new Date(); yest.setDate(yest.getDate()-1);
             if (streakData.lastDate !== yest.toDateString()) streakData.count = 0;
         }
         document.getElementById('streak-count').innerText = streakData.count;
+
+        const start = new Date(cycleStartDate);
+        const today = new Date();
+        const diffTime = Math.abs(today - start);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        document.getElementById('cycle-days').innerText = `Day ${diffDays}`;
     }
+
     function updateStreak() { const today = new Date().toDateString(); if (streakData.lastDate !== today) { streakData.count++; streakData.lastDate = today; saveStreak(); } }
     function saveStreak() { localStorage.setItem('streakData', JSON.stringify(streakData)); }
     function saveData() { localStorage.setItem('hifzData', JSON.stringify(userData)); }
     function openResetModal() { document.getElementById('confirm-modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('confirm-modal').style.display = 'none'; }
-    function executeRestart() { userData.forEach(u => u.revised = false); saveData(); closeModal(); renderMainScreen(); }
+
+    function executeRestart() {
+        userData.forEach(u => u.revised = false);
+        cycleStartDate = new Date().toISOString();
+        localStorage.setItem('cycleStartDate', cycleStartDate);
+        saveData();
+        closeModal();
+        calculateStreak();
+        renderMainScreen();
+    }
 
     window.onload = () => { loadSurahData(); loadIcons(); };
 </script>
