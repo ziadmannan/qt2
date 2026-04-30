@@ -89,6 +89,12 @@ header h1 { margin: 0; font-size: 1.1rem; font-weight: 500; }
 .icon-load svg { width: 100%; height: 100%; fill: currentColor; }
 .quran-link { padding: 6px; color: var(--primary); text-decoration: none; border-radius: 8px; width: 20px; height: 20px; }
 
+.pin-icon { width: 24px; height: 24px; margin-left: 4px; color: var(--border); cursor: pointer; flex-shrink: 0; transition: color 0.2s; }
+.pin-icon.pinned { color: var(--primary); }
+
+.pin-separator { display: flex; justify-content: center; align-items: center; margin: 8px 0; }
+.pin-separator::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--border); }
+
 .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
     height: 65px; background: var(--nav-bg);

@@ -60,8 +60,12 @@ function renderMainScreen() {
     container.innerHTML = '';
     const list = surahs.filter(s => {
         const r = userData.find(u => u.id === s.id);
-        return r && (showRevised ? true : !r.revised);
-    }).sort((a,b) => a.id - b.id);
+        return r && (r.pinned || showRevised || !r.revised);
+    }).sort((a, b) => {
+        const aPin = userData.find(u => u.id === a.id).pinned ? 0 : 1;
+        const bPin = userData.find(u => u.id === b.id).pinned ? 0 : 1;
+        return aPin - bPin || a.id - b.id;
+    });
 
     if (list.length === 0) {
         const emptyDiv = document.createElement('div');
@@ -90,8 +94,14 @@ function renderMainScreen() {
         return;
     }
 
-    list.forEach(s => {
+    list.forEach((s, i) => {
         const r = userData.find(u => u.id === s.id);
+        const prevR = i > 0 ? userData.find(u => u.id === list[i - 1].id) : null;
+        if (i > 0 && !r.pinned && prevR.pinned) {
+            const sep = document.createElement('div');
+            sep.className = 'pin-separator';
+            container.appendChild(sep);
+        }
         const wrapper = document.createElement('div');
         wrapper.className = `surah-wrapper ${r.revised ? 'is-revised' : ''}`;
         wrapper.innerHTML = `
@@ -101,9 +111,10 @@ function renderMainScreen() {
                 <span class="surah-num">${s.id}</span>
                 <div class="surah-info">
                     <span class="surah-name">${s.name}</span>
-                    <span class="last-revised">${r.lastDate ? 'Last: ' + r.lastDate : 'New'}</span>
+                    <span class="last-revised">${r.lastDate ? 'Last: ' + r.lastDate + ' (' + daysSince(r.lastDate) + ')' : 'New'}</span>
                 </div>
                 <a href="https://quran.com/${s.id}" target="_blank" class="quran-link icon-load" data-src="book.svg" onclick="event.stopPropagation()"></a>
+                <div class="pin-icon ${r.pinned ? 'pinned' : ''} icon-load" data-src="${r.pinned ? 'pin-fill.svg' : 'pin-outline.svg'}" onclick="togglePin(${s.id}); event.stopPropagation()"></div>
             </div>`;
         setupSwipe(wrapper.querySelector('.surah-card'), s.id, r.revised, s.name);
         container.appendChild(wrapper);
@@ -210,6 +221,7 @@ function updateStatus(id, status, surahName, skipAnim = false) {
 }
 
 function toggleShowRevised() { showRevised = !showRevised; localStorage.setItem('showRevisedSetting', JSON.stringify(showRevised)); renderMainScreen(); }
+function togglePin(id) { const r = userData.find(u => u.id === id); if (r) { r.pinned = !r.pinned; saveData(); renderMainScreen(); } }
 function toggleSelectionScreen() {
     const s = document.getElementById('selection-screen');
     s.style.display = (s.style.display !== 'flex') ? 'flex' : 'none';
@@ -227,7 +239,7 @@ function renderFullList() {
         div.innerHTML = `<span><strong>${s.id}</strong> ${s.name}</span><span class="check-pill">${isSelected ? 'ADDED' : 'ADD'}</span>`;
         div.onclick = () => {
             const i = userData.findIndex(u => u.id === s.id);
-            i > -1 ? userData.splice(i, 1) : userData.push({id: s.id, revised: false, lastDate: null});
+            i > -1 ? userData.splice(i, 1) : userData.push({id: s.id, revised: false, lastDate: null, pinned: false});
             saveData(); renderFullList();
         };
         container.appendChild(div);
@@ -257,6 +269,7 @@ function calculateStreak() {
 function updateStreak() { const today = new Date().toDateString(); if (streakData.lastDate !== today) { streakData.count++; streakData.lastDate = today; saveStreak(); } }
 function saveStreak() { localStorage.setItem('streakData', JSON.stringify(streakData)); }
 function saveData() { localStorage.setItem('hifzData', JSON.stringify(userData)); }
+function daysSince(dateStr) { const parts = dateStr.split('/'); const d = new Date(parts[2], parts[1] - 1, parts[0]); return Math.floor((new Date() - d) / 86400000); }
 function openResetModal() { document.getElementById('confirm-modal').style.display = 'flex'; }
 function closeModal() { document.getElementById('confirm-modal').style.display = 'none'; }
 function executeRestart() { userData.forEach(u => u.revised = false); cycleStartDate = new Date().toISOString(); localStorage.setItem('cycleStartDate', cycleStartDate); saveData(); closeModal(); calculateStreak(); renderMainScreen(); }
