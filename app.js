@@ -208,15 +208,18 @@ function setupSwipe(el, id, isAlreadyRevised, surahName) {
 }
 
 function updateStatus(id, status, surahName, skipAnim = false) {
+    const r = userData.find(u => u.id === id);
+    if (!r) return;
+    const prevLastDate = r.lastDate;
     const applyUpdate = () => {
-        const r = userData.find(u => u.id === id);
-        if (!r) return;
         r.revised = status;
         if (status) {
             r.lastDate = new Date().toLocaleDateString('en-GB');
             updateStreak();
-            showToast(surahName, id);
+            showToast(surahName, id, prevLastDate);
             if (userData.every(u => u.revised)) fireConfetti();
+        } else {
+            r.lastDate = prevLastDate;
         }
         saveData(); renderMainScreen();
     };
@@ -249,10 +252,10 @@ function renderFullList() {
     });
 }
 
-function showToast(name, id) {
+function showToast(name, id, prevLastDate) {
     const t = document.getElementById("toast");
     document.getElementById("toast-message").innerText = `${name} Revised`;
-    document.getElementById("toast-undo-btn").onclick = () => { updateStatus(id, false, name, true); hideToast(); };
+    document.getElementById("toast-undo-btn").onclick = () => { const r = userData.find(u => u.id === id); if (r) { r.revised = false; r.lastDate = prevLastDate; saveData(); renderMainScreen(); } hideToast(); };
     t.style.visibility = "visible"; t.style.opacity = "1";
     clearTimeout(toastTimeout); toastTimeout = setTimeout(hideToast, 4000);
 }
