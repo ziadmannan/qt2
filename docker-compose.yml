@@ -1,0 +1,8 @@
+services:
+  web-server:
+    image: nginx:alpine
+    container_name: pwa-test-server
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/usr/share/nginx/html:ro

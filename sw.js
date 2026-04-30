@@ -1,7 +1,9 @@
-const CACHE_NAME = 'quran-tracker-v1';
+const CACHE_NAME = 'quran-tracker-v3';
 const ASSETS = [
     './',
     './index.html',
+    './styles.css',
+    './app.js',
     './surahs.json',
     './manifest.json',
     './tick.svg',
