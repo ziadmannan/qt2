@@ -55,8 +55,10 @@ function renderMainScreen() {
     if (carouselInterval) clearInterval(carouselInterval);
     const total = userData.length;
     const revisedCount = userData.filter(u => u.revised).length;
-    document.getElementById('progress-text').innerText = `${revisedCount}/${total}`;
-    document.getElementById('progress-bar').style.width = `${total > 0 ? (revisedCount/total)*100 : 0}%`;
+    const totalPages = userData.reduce((s, u) => s + (surahs.find(s2 => s2.id === u.id)?.pages || 0), 0);
+    const revisedPages = userData.filter(u => u.revised).reduce((s, u) => s + (surahs.find(s2 => s2.id === u.id)?.pages || 0), 0);
+    document.getElementById('progress-text').innerText = `${revisedCount}/${total} · ${totalPages > 0 ? Math.round((revisedPages/totalPages)*100) : 0}%`;
+    document.getElementById('progress-bar').style.width = `${totalPages > 0 ? (revisedPages/totalPages)*100 : 0}%`;
     const navEye = document.getElementById('nav-eye');
     showRevised ? navEye.classList.add('active') : navEye.classList.remove('active');
     const container = document.getElementById('main-list');
@@ -116,8 +118,8 @@ function renderMainScreen() {
                     <span class="surah-name">${s.name}</span>
                     <span class="last-revised">${r.lastDate ? 'Last: ' + r.lastDate + ' (' + daysSince(r.lastDate) + ')' : 'New'}</span>
                 </div>
-                <a href="https://quran.com/${s.id}" target="_blank" class="quran-link icon-load" data-src="book.svg" onclick="event.stopPropagation()"></a>
                 <div class="pin-icon ${r.pinned ? 'pinned' : ''} icon-load" data-src="${r.pinned ? 'pin-fill.svg' : 'pin-outline.svg'}" onclick="togglePin(${s.id}); event.stopPropagation()"></div>
+                <a href="https://quran.com/${s.id}" target="_blank" class="quran-link icon-load" data-src="book.svg" onclick="event.stopPropagation()"></a>
             </div>`;
         setupSwipe(wrapper.querySelector('.surah-card'), s.id, r.revised, s.name);
         container.appendChild(wrapper);
@@ -268,14 +270,14 @@ function calculateStreak() {
         if (streakData.lastDate !== yest.toDateString()) streakData.count = 0;
     }
     document.getElementById('streak-count').innerText = streakData.count;
-    const diffDays = Math.floor(Math.abs(new Date() - new Date(cycleStartDate)) / 86400000) + 1;
+    const start = new Date(cycleStartDate); const now = new Date(); const diffDays = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / 86400000) + 1;
     document.getElementById('cycle-days').innerText = `Day ${diffDays}`;
 }
 
 function updateStreak() { const today = new Date().toDateString(); if (streakData.lastDate !== today) { streakData.count++; streakData.lastDate = today; saveStreak(); } }
 function saveStreak() { localStorage.setItem('streakData', JSON.stringify(streakData)); }
 function saveData() { localStorage.setItem('hifzData', JSON.stringify(userData)); }
-function daysSince(dateStr) { const parts = dateStr.split('/'); const d = new Date(parts[2], parts[1] - 1, parts[0]); return Math.floor((new Date() - d) / 86400000); }
+function daysSince(dateStr) { const parts = dateStr.split('/'); const d = new Date(parts[2], parts[1] - 1, parts[0]); const now = new Date(); return Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())) / 86400000); }
 function openResetModal() { document.getElementById('confirm-modal').style.display = 'flex'; }
 function closeModal() { document.getElementById('confirm-modal').style.display = 'none'; }
 function executeRestart() { userData.forEach(u => u.revised = false); cycleStartDate = new Date().toISOString(); localStorage.setItem('cycleStartDate', cycleStartDate); saveData(); closeModal(); calculateStreak(); renderMainScreen(); }
