@@ -15,7 +15,7 @@
     <header><h1>Quran Revision Tracker</h1></header>
     <div class="summary-box">
         <div class="summary-stats">
-            <div class="stat-group"><span class="stat-value" id="progress-text">0/0</span><span class="stat-label">Progress</span></div>
+            <div class="stat-group"><span class="stat-value cycle-clickable" id="progress-text" onclick="openProgressModal()">0/0</span><span class="stat-label">Progress</span></div>
             <div class="stat-group"><span class="stat-value"><span class="streak-icon">🔥</span> <span id="streak-count">0</span></span><span class="stat-label">Streak</span></div>
             <div class="stat-group"><span class="stat-value cycle-clickable" id="cycle-days" onclick="openCycleModal()">Day 1</span><span class="stat-label">Cycle</span></div>
         </div>
@@ -53,6 +53,23 @@
             <button onclick="closeModal()" style="flex:1; padding:10px; border:none; border-radius:8px;">Cancel</button>
             <button onclick="executeRestart()" style="flex:1; padding:10px; border:none; border-radius:8px; background:var(--undo); color:white; font-weight:bold;">Restart</button>
         </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="progress-modal">
+    <div class="modal-content progress-modal-content">
+        <h3>Progress Details</h3>
+        <div class="progress-detail-section">
+            <div class="progress-detail-header"><span id="progress-surahs-label">Surahs</span><span id="progress-surahs-pct"></span></div>
+            <div class="progress-detail-bar"><div class="progress-detail-fill" id="progress-surahs-fill"></div></div>
+            <div class="progress-detail-labels"><span id="progress-surahs-revised"></span><span id="progress-surahs-unrevised"></span></div>
+        </div>
+        <div class="progress-detail-section">
+            <div class="progress-detail-header"><span id="progress-pages-label">Pages</span><span id="progress-pages-pct"></span></div>
+            <div class="progress-detail-bar"><div class="progress-detail-fill" id="progress-pages-fill"></div></div>
+            <div class="progress-detail-labels"><span id="progress-pages-revised"></span><span id="progress-pages-unrevised"></span></div>
+        </div>
+        <button class="cycle-close-btn" onclick="closeProgressModal()">Close</button>
     </div>
 </div>
 

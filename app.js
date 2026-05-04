@@ -292,6 +292,27 @@ function showToast(name, id, prevLastDate) {
 }
 function hideToast() { const t = document.getElementById("toast"); t.style.opacity = "0"; setTimeout(() => t.style.visibility="hidden", 300); }
 
+function openProgressModal() {
+    const total = userData.length;
+    const revisedCount = userData.filter(u => u.revised).length;
+    const totalPages = userData.reduce((s, u) => s + (surahs.find(s2 => s2.id === u.id)?.pages || 0), 0);
+    const revisedPages = userData.filter(u => u.revised).reduce((s, u) => s + (surahs.find(s2 => s2.id === u.id)?.pages || 0), 0);
+    const surahsPct = total > 0 ? Math.round((revisedCount / total) * 100) : 0;
+    const pagesPct = totalPages > 0 ? Math.round((revisedPages / totalPages) * 100) : 0;
+    document.getElementById('progress-surahs-label').innerText = `Surahs (${total})`;
+    document.getElementById('progress-surahs-pct').innerText = `${surahsPct}%`;
+    document.getElementById('progress-surahs-fill').style.width = `${surahsPct}%`;
+    document.getElementById('progress-surahs-revised').innerText = `Revised: ${revisedCount}`;
+    document.getElementById('progress-surahs-unrevised').innerText = `Unrevised: ${total - revisedCount}`;
+    document.getElementById('progress-pages-label').innerText = `Pages (${totalPages.toFixed(1)})`;
+    document.getElementById('progress-pages-pct').innerText = `${pagesPct}%`;
+    document.getElementById('progress-pages-fill').style.width = `${pagesPct}%`;
+    document.getElementById('progress-pages-revised').innerText = `Revised: ${revisedPages.toFixed(1)}`;
+    document.getElementById('progress-pages-unrevised').innerText = `Unrevised: ${(totalPages - revisedPages).toFixed(1)}`;
+    document.getElementById('progress-modal').style.display = 'flex';
+}
+function closeProgressModal() { document.getElementById('progress-modal').style.display = 'none'; }
+
 function calculateStreak() {
     const todayStr = new Date().toDateString();
     if (streakData.lastDate && streakData.lastDate !== todayStr) {

@@ -143,6 +143,12 @@ header h1 { margin: 0; font-size: 1.1rem; font-weight: 500; }
 .cycle-info-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.85rem; color: var(--subtext); border-bottom: 1px solid var(--border); }
 .cycle-info-row span:last-child { font-weight: 500; color: var(--text); }
 .cycle-close-btn { margin-top: 16px; width: 100%; padding: 10px; border: none; border-radius: 8px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+.progress-modal-content { text-align: left; }
+.progress-detail-section { margin: 16px 0; }
+.progress-detail-header { display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 500; margin-bottom: 6px; }
+.progress-detail-bar { height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
+.progress-detail-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s ease; border-radius: 5px; }
+.progress-detail-labels { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--subtext); margin-top: 4px; }
 @keyframes slideOutLeft { to { transform: translateX(-100%); opacity: 0; } }
 @keyframes slideOutRight { to { transform: translateX(100%); opacity: 0; } }
 .anim-left { animation: slideOutLeft 0.3s forwards; }
