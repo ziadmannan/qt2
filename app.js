@@ -110,9 +110,13 @@ function renderMainScreen() {
             container.appendChild(sep);
         }
         const wrapper = document.createElement('div');
-        wrapper.className = `surah-wrapper ${r.revised ? 'is-revised' : ''}`;
+        const isPinnedRevised = r.revised && r.pinned;
+        wrapper.className = `surah-wrapper ${r.revised && !isPinnedRevised ? 'is-revised' : ''}`;
+        const swipeBg = isPinnedRevised
+            ? '<div class="swipe-bg bg-left" style="background:var(--undo)">UNDO ↺</div><div class="swipe-bg bg-right" style="background:var(--primary)">TODAY ✓</div>'
+            : `<div class="swipe-bg ${r.revised ? 'bg-left' : 'bg-right'}">${r.revised ? 'UNDO ↺' : 'DONE ✓'}</div>`;
         wrapper.innerHTML = `
-            <div class="swipe-bg ${r.revised ? 'bg-left' : 'bg-right'}">${r.revised ? 'UNDO ↺' : 'DONE ✓'}</div>
+            ${swipeBg}
             <div class="surah-card ${r.revised ? 'revised-style' : ''}">
                 <div class="status-tick ${r.revised ? 'active' : ''} icon-load" data-src="tick.svg" onclick="toggleStatus(${s.id}); event.stopPropagation()"></div>
                 <span class="surah-num">${s.id}</span>
@@ -188,25 +192,48 @@ function updateCarousel() {
 function toggleStatus(id) {
     const s = surahs.find(x => x.id === id);
     const r = userData.find(u => u.id === id);
-    if (r && s) updateStatus(id, !r.revised, s.name, true);
+    if (!r || !s) return;
+    if (r.pinned && r.revised) { r.lastDate = new Date().toLocaleDateString('en-GB'); updateStreak(); saveData(); renderMainScreen(); return; }
+    updateStatus(id, !r.revised, s.name, true);
 }
 
 function setupSwipe(el, id, isAlreadyRevised, surahName) {
+    const r = userData.find(u => u.id === id);
+    const isPinned = r ? r.pinned : false;
+    const isPinnedRevised = isAlreadyRevised && isPinned;
     let startX = 0, currentX = 0, isSwiping = false;
-    const bg = el.previousElementSibling;
+    let bgUndo, bgToday, bg;
+    if (isPinnedRevised) {
+        bgUndo = el.parentElement.querySelector('.bg-left');
+        bgToday = el.parentElement.querySelector('.bg-right');
+    } else {
+        bg = el.previousElementSibling;
+    }
     el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; el.style.transition = 'none'; isSwiping = false; }, {passive: true});
     el.addEventListener('touchmove', e => {
         currentX = e.touches[0].clientX;
         let diff = currentX - startX;
-        if ((!isAlreadyRevised && diff < 0) || (isAlreadyRevised && diff > 0)) { isSwiping = true; el.style.transform = `translateX(${diff}px)`; bg.style.opacity = "1"; }
+        if (diff !== 0 && ((!isAlreadyRevised && diff < 0) || (isAlreadyRevised && !isPinned && diff > 0) || (isPinnedRevised))) {
+            isSwiping = true; el.style.transform = `translateX(${diff}px)`;
+            if (isPinnedRevised) { bgUndo.style.opacity = diff > 0 ? "1" : "0"; bgToday.style.opacity = diff < 0 ? "1" : "0"; }
+            else { bg.style.opacity = "1"; }
+        }
     }, {passive: true});
     el.addEventListener('touchend', () => {
         el.style.transition = 'transform 0.2s ease-out';
         let diff = currentX - startX;
         if (isSwiping && Math.abs(diff) > 100) {
-            el.classList.add(diff < 0 ? 'anim-left' : 'anim-right');
-            updateStatus(id, diff < 0, surahName);
-        } else { el.style.transform = `translateX(0px)`; bg.style.opacity = "0"; }
+            if (isPinnedRevised && diff < 0) {
+                r.lastDate = new Date().toLocaleDateString('en-GB'); updateStreak(); saveData(); renderMainScreen();
+            } else {
+                el.classList.add(diff < 0 ? 'anim-left' : 'anim-right');
+                updateStatus(id, diff < 0, surahName);
+            }
+        } else {
+            el.style.transform = `translateX(0px)`;
+            if (isPinnedRevised) { bgUndo.style.opacity = "0"; bgToday.style.opacity = "0"; }
+            else { bg.style.opacity = "0"; }
+        }
         isSwiping = false;
     });
 }
