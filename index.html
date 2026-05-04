@@ -17,9 +17,9 @@
         <div class="summary-stats">
             <div class="stat-group"><span class="stat-value" id="progress-text">0/0</span><span class="stat-label">Progress</span></div>
             <div class="stat-group"><span class="stat-value"><span class="streak-icon">🔥</span> <span id="streak-count">0</span></span><span class="stat-label">Streak</span></div>
-            <div class="stat-group"><span class="stat-value" id="cycle-days">Day 1</span><span class="stat-label">Cycle</span></div>
+            <div class="stat-group"><span class="stat-value cycle-clickable" id="cycle-days" onclick="openCycleModal()">Day 1</span><span class="stat-label">Cycle</span></div>
         </div>
-        <div class="progress-container"><div class="progress-fill" id="progress-bar"></div></div>
+        <div class="progress-container"><div class="progress-fill" id="progress-bar"></div><div id="day-markers"></div><div class="progress-target" id="progress-target"></div></div>
     </div>
 </div>
 
@@ -53,6 +53,30 @@
             <button onclick="closeModal()" style="flex:1; padding:10px; border:none; border-radius:8px;">Cancel</button>
             <button onclick="executeRestart()" style="flex:1; padding:10px; border:none; border-radius:8px; background:var(--undo); color:white; font-weight:bold;">Restart</button>
         </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="cycle-modal">
+    <div class="modal-content cycle-modal-content">
+        <h3>Cycle Tracking</h3>
+        <div class="cycle-toggle-row">
+            <span>Enable cycle tracking</span>
+            <label class="toggle-switch"><input type="checkbox" id="cycle-toggle" onchange="toggleCycleTracking()"><span class="toggle-slider"></span></label>
+        </div>
+        <div id="cycle-settings">
+            <div class="cycle-stepper-row">
+                <span>Cycle length</span>
+                <div class="stepper">
+                    <button class="stepper-btn" onclick="updateCycleLength(-1)">−</button>
+                    <span class="stepper-value" id="cycle-length-display">7</span>
+                    <button class="stepper-btn" onclick="updateCycleLength(1)">+</button>
+                </div>
+            </div>
+            <div class="cycle-info-row"><span>Start date</span><span id="cycle-start-date"></span></div>
+            <div class="cycle-info-row"><span>End date</span><span id="cycle-end-date"></span></div>
+            <div class="cycle-info-row"><span>Per day target</span><span id="cycle-per-day"></span></div>
+        </div>
+        <button class="cycle-close-btn" onclick="closeCycleModal()">Close</button>
     </div>
 </div>
 

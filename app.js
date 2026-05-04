@@ -4,6 +4,8 @@ let _needsSave = false;
 userData.forEach(u => { if (u.pinned === undefined) { u.pinned = false; _needsSave = true; } });
 if (_needsSave) localStorage.setItem('hifzData', JSON.stringify(userData));
 let cycleStartDate = localStorage.getItem('cycleStartDate') || new Date().toISOString();
+let cycleLength = parseInt(localStorage.getItem('cycleLength')) || 7;
+let cycleTrackingEnabled = localStorage.getItem('cycleTrackingEnabled') === 'true';
 let showRevised = localStorage.getItem('showRevisedSetting') === null ? true : JSON.parse(localStorage.getItem('showRevisedSetting'));
 let streakData = JSON.parse(localStorage.getItem('streakData')) || { count: 0, lastDate: null };
 let toastTimeout;
@@ -271,7 +273,29 @@ function calculateStreak() {
     }
     document.getElementById('streak-count').innerText = streakData.count;
     const start = new Date(cycleStartDate); const now = new Date(); const diffDays = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / 86400000) + 1;
-    document.getElementById('cycle-days').innerText = `Day ${diffDays}`;
+    document.getElementById('cycle-days').innerText = cycleTrackingEnabled ? `Day ${diffDays}/${cycleLength}` : `Day ${diffDays}`;
+    const target = document.getElementById('progress-target');
+    const markersContainer = document.getElementById('day-markers');
+    markersContainer.innerHTML = '';
+    if (cycleTrackingEnabled) {
+        for (let d = 1; d <= cycleLength; d++) {
+            const pct = (d / cycleLength) * 100;
+            if (d === diffDays) continue;
+            const m = document.createElement('div');
+            m.className = 'day-marker';
+            m.style.left = pct >= 100 ? 'calc(100% - 1px)' : `${pct}%`;
+            markersContainer.appendChild(m);
+        }
+        if (diffDays <= cycleLength) {
+            target.style.display = 'block';
+            const pct = (diffDays / cycleLength) * 100;
+            target.style.left = pct >= 100 ? 'calc(100% - 2px)' : `${pct}%`;
+        } else {
+            target.style.display = 'none';
+        }
+    } else {
+        target.style.display = 'none';
+    }
 }
 
 function updateStreak() { const today = new Date().toDateString(); if (streakData.lastDate !== today) { streakData.count++; streakData.lastDate = today; saveStreak(); } }
@@ -280,6 +304,35 @@ function saveData() { localStorage.setItem('hifzData', JSON.stringify(userData))
 function daysSince(dateStr) { const parts = dateStr.split('/'); const d = new Date(parts[2], parts[1] - 1, parts[0]); const now = new Date(); return Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())) / 86400000); }
 function openResetModal() { document.getElementById('confirm-modal').style.display = 'flex'; }
 function closeModal() { document.getElementById('confirm-modal').style.display = 'none'; }
+
+function openCycleModal() {
+    document.getElementById('cycle-toggle').checked = cycleTrackingEnabled;
+    updateCycleModalDisplay();
+    document.getElementById('cycle-modal').style.display = 'flex';
+}
+function closeCycleModal() { document.getElementById('cycle-modal').style.display = 'none'; }
+function toggleCycleTracking() {
+    cycleTrackingEnabled = document.getElementById('cycle-toggle').checked;
+    localStorage.setItem('cycleTrackingEnabled', cycleTrackingEnabled);
+    updateCycleModalDisplay();
+    calculateStreak();
+}
+function updateCycleLength(delta) {
+    cycleLength = Math.max(1, Math.min(30, cycleLength + delta));
+    localStorage.setItem('cycleLength', cycleLength);
+    updateCycleModalDisplay();
+    calculateStreak();
+}
+function updateCycleModalDisplay() {
+    const settings = document.getElementById('cycle-settings');
+    settings.style.display = cycleTrackingEnabled ? 'block' : 'none';
+    document.getElementById('cycle-length-display').innerText = cycleLength;
+    const start = new Date(cycleStartDate);
+    document.getElementById('cycle-start-date').innerText = start.toLocaleDateString('en-GB');
+    const end = new Date(start); end.setDate(end.getDate() + cycleLength - 1);
+    document.getElementById('cycle-end-date').innerText = end.toLocaleDateString('en-GB');
+    document.getElementById('cycle-per-day').innerText = (100 / cycleLength).toFixed(1) + '%';
+}
 function executeRestart() { userData.forEach(u => u.revised = false); cycleStartDate = new Date().toISOString(); localStorage.setItem('cycleStartDate', cycleStartDate); saveData(); closeModal(); calculateStreak(); renderMainScreen(); }
 
 window.onload = () => { loadSurahData(); loadIcons(); };
