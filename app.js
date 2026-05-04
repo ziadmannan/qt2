@@ -271,7 +271,7 @@ function calculateStreak() {
         const yest = new Date(); yest.setDate(yest.getDate()-1);
         if (streakData.lastDate !== yest.toDateString()) streakData.count = 0;
     }
-    document.getElementById('streak-count').innerText = streakData.count;
+    document.getElementById('streak-count').innerText = streakData.count + (streakData.lastDate !== todayStr ? '*' : '');
     const start = new Date(cycleStartDate); const now = new Date(); const diffDays = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / 86400000) + 1;
     document.getElementById('cycle-days').innerText = cycleTrackingEnabled ? `Day ${diffDays}/${cycleLength}` : `Day ${diffDays}`;
     const target = document.getElementById('progress-target');
