@@ -117,17 +117,20 @@ function renderMainScreen() {
             : `<div class="swipe-bg ${r.revised ? 'bg-left' : 'bg-right'}">${r.revised ? 'UNDO ↺' : 'DONE ✓'}</div>`;
         wrapper.innerHTML = `
             ${swipeBg}
-            <div class="surah-card ${r.revised ? 'revised-style' : ''}">
-                <div class="status-tick ${r.revised ? 'active' : ''} icon-load" data-src="tick.svg" onclick="toggleStatus(${s.id}); event.stopPropagation()"></div>
+            <div class="surah-card ${r.revised ? 'revised-style' : ''}" data-surah-id="${s.id}">
+                <div class="status-tick ${r.revised ? 'active' : ''} icon-load" data-src="tick.svg"></div>
                 <span class="surah-num">${s.id}</span>
                 <div class="surah-info">
                     <span class="surah-name">${s.name}</span>
                     <span class="last-revised">${r.lastDate ? 'Last: ' + r.lastDate + ' (' + daysSince(r.lastDate) + ')' : 'New'}</span>
                 </div>
-                <div class="pin-icon ${r.pinned ? 'pinned' : ''} icon-load" data-src="${r.pinned ? 'pin-fill.svg' : 'pin-outline.svg'}" onclick="togglePin(${s.id}); event.stopPropagation()"></div>
-                <a href="https://quran.com/${s.id}" target="_blank" class="quran-link icon-load" data-src="book.svg" onclick="event.stopPropagation()"></a>
             </div>`;
-        setupSwipe(wrapper.querySelector('.surah-card'), s.id, r.revised, s.name);
+        const card = wrapper.querySelector('.surah-card');
+        card.addEventListener('click', e => {
+            if (e.target.closest('.status-tick')) { toggleStatus(s.id); return; }
+            window.open(`https://quran.com/${s.id}`, '_blank');
+        });
+        setupSwipe(card, s.id, r.revised, s.name);
         container.appendChild(wrapper);
     });
     loadIcons(container);
@@ -193,7 +196,6 @@ function toggleStatus(id) {
     const s = surahs.find(x => x.id === id);
     const r = userData.find(u => u.id === id);
     if (!r || !s) return;
-    if (r.pinned && r.revised) { r.lastDate = new Date().toLocaleDateString('en-GB'); updateStreak(); saveData(); renderMainScreen(); return; }
     updateStatus(id, !r.revised, s.name, true);
 }
 
@@ -258,7 +260,7 @@ function updateStatus(id, status, surahName, skipAnim = false) {
 }
 
 function toggleShowRevised() { showRevised = !showRevised; localStorage.setItem('showRevisedSetting', JSON.stringify(showRevised)); renderMainScreen(); }
-function togglePin(id) { const r = userData.find(u => u.id === id); if (r) { r.pinned = !r.pinned; saveData(); renderMainScreen(); } }
+function togglePin(id) { const r = userData.find(u => u.id === id); if (r) { r.pinned = !r.pinned; saveData(); renderMainScreen(); renderFullList(); } }
 function toggleSelectionScreen() {
     const s = document.getElementById('selection-screen');
     s.style.display = (s.style.display !== 'flex') ? 'flex' : 'none';
@@ -270,10 +272,12 @@ function renderFullList() {
     const container = document.getElementById('full-surah-list');
     container.innerHTML = '';
     surahs.filter(s => s.name.toLowerCase().includes(filter)).forEach(s => {
-        const isSelected = userData.some(u => u.id === s.id);
+        const r = userData.find(u => u.id === s.id);
+        const isSelected = !!r;
         const div = document.createElement('div');
         div.className = `full-list-item ${isSelected ? 'selected' : ''}`;
-        div.innerHTML = `<span><strong>${s.id}</strong> ${s.name}</span><span class="check-pill">${isSelected ? 'ADDED' : 'ADD'}</span>`;
+        const pinHtml = isSelected ? `<div class="pin-icon ${r.pinned ? 'pinned' : ''} icon-load" data-src="${r.pinned ? 'pin-fill.svg' : 'pin-outline.svg'}" onclick="event.stopPropagation(); togglePin(${s.id})"></div>` : '';
+        div.innerHTML = `<span><strong>${s.id}</strong> ${s.name}</span><div class="list-item-actions">${pinHtml}<span class="check-pill">${isSelected ? 'ADDED' : 'ADD'}</span></div>`;
         div.onclick = () => {
             const i = userData.findIndex(u => u.id === s.id);
             i > -1 ? userData.splice(i, 1) : userData.push({id: s.id, revised: false, lastDate: null, pinned: false});
@@ -281,6 +285,7 @@ function renderFullList() {
         };
         container.appendChild(div);
     });
+    loadIcons(container);
 }
 
 function showToast(name, id, prevLastDate) {
