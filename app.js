@@ -388,7 +388,254 @@ function updateCycleModalDisplay() {
 }
 function executeRestart() { userData.forEach(u => u.revised = false); cycleStartDate = new Date().toISOString(); localStorage.setItem('cycleStartDate', cycleStartDate); saveData(); closeModal(); calculateStreak(); renderMainScreen(); }
 
-window.onload = () => { loadSurahData(); loadIcons(); };
+// ==================== GOOGLE DRIVE SYNC ====================
+const GOOGLE_CLIENT_ID = '116517743827-0s273f5kl337modif3mhq4f3ck6k1ic3.apps.googleusercontent.com';
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
+const DRIVE_FILE_NAME = 'quran-tracker-data.json';
+let gapiToken = null;
+let isSyncing = false;
+let syncDebounceTimer = null;
+let pendingSync = false;
+let driveFileId = localStorage.getItem('driveFileId') || null;
+let lastSyncTimestamp = localStorage.getItem('lastSyncTimestamp') || null;
+let isGoogleSignedIn = localStorage.getItem('isGoogleSignedIn') === 'true';
+let tokenClient = null;
+
+function getAppState() {
+    return {
+        timestamp: new Date().toISOString(),
+        hifzData: userData,
+        cycleStartDate,
+        cycleLength,
+        cycleTrackingEnabled,
+        showRevisedSetting: showRevised,
+        streakData
+    };
+}
+
+function loadAppState(state) {
+    userData = state.hifzData || [];
+    localStorage.setItem('hifzData', JSON.stringify(userData));
+    cycleStartDate = state.cycleStartDate || new Date().toISOString();
+    localStorage.setItem('cycleStartDate', cycleStartDate);
+    cycleLength = state.cycleLength || 7;
+    localStorage.setItem('cycleLength', cycleLength);
+    cycleTrackingEnabled = state.cycleTrackingEnabled || false;
+    localStorage.setItem('cycleTrackingEnabled', cycleTrackingEnabled);
+    showRevised = state.showRevisedSetting !== undefined ? state.showRevisedSetting : true;
+    localStorage.setItem('showRevisedSetting', JSON.stringify(showRevised));
+    streakData = state.streakData || { count: 0, lastDate: null };
+    localStorage.setItem('streakData', JSON.stringify(streakData));
+    calculateStreak();
+    renderMainScreen();
+    renderFullList();
+}
+
+function initGoogleAuth() {
+    if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID_HERE') return;
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: DRIVE_SCOPE,
+        callback: (tokenResponse) => {
+            if (tokenResponse.error) { updateSyncStatus('Error'); return; }
+            gapiToken = tokenResponse.access_token;
+            isGoogleSignedIn = true;
+            localStorage.setItem('isGoogleSignedIn', 'true');
+            updateSyncButton();
+            syncFromDrive();
+        }
+    });
+    if (isGoogleSignedIn) {
+        tokenClient.requestAccessToken({ prompt: '' });
+    }
+}
+
+function handleSyncClick() {
+    if (isGoogleSignedIn) { signOutGoogle(); }
+    else { signInGoogle(); }
+}
+
+function signInGoogle() {
+    if (!tokenClient) { updateSyncStatus('Not configured'); return; }
+    tokenClient.requestAccessToken();
+}
+
+function signOutGoogle() {
+    if (gapiToken) {
+        google.accounts.oauth2.revoke(gapiToken);
+        gapiToken = null;
+    }
+    isGoogleSignedIn = false;
+    localStorage.removeItem('isGoogleSignedIn');
+    driveFileId = null;
+    localStorage.removeItem('driveFileId');
+    lastSyncTimestamp = null;
+    localStorage.removeItem('lastSyncTimestamp');
+    updateSyncButton();
+    updateSyncStatus('');
+}
+
+function updateSyncButton() {
+    const btn = document.getElementById('sync-btn');
+    const btnText = document.getElementById('sync-btn-text');
+    if (isGoogleSignedIn) {
+        btn.classList.add('synced');
+        btnText.textContent = 'Unsync';
+    } else {
+        btn.classList.remove('synced');
+        btnText.textContent = 'Sync to Google';
+    }
+}
+
+function updateSyncStatus(text) {
+    const el = document.getElementById('sync-status');
+    if (el) el.textContent = text;
+}
+
+async function driveApiFetch(method, path, body = null) {
+    const opts = { method, headers: { 'Authorization': `Bearer ${gapiToken}` } };
+    if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = typeof body === 'string' ? body : JSON.stringify(body); }
+    const res = await fetch(`https://www.googleapis.com/drive/v3${path}`, opts);
+    if (res.status === 401) { gapiToken = null; tokenClient.requestAccessToken({ prompt: '' }); throw new Error('auth'); }
+    if (!res.ok) { const errText = await res.text(); console.error('Drive API error response:', errText); throw new Error(`Drive API error: ${res.status}`); }
+    return res.json();
+}
+
+async function driveUpload(content, fileId) {
+    const data = JSON.stringify(content);
+    const metadata = { name: DRIVE_FILE_NAME, mimeType: 'application/json' };
+    if (!fileId) metadata.parents = ['appDataFolder'];
+    const boundary = '-------314159265358979323846';
+    const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${data}\r\n--${boundary}--`;
+    const path = fileId ? `/upload/drive/v3/files/${fileId}?uploadType=multipart&fields=id,modifiedTime` : `/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime`;
+    const method = fileId ? 'PATCH' : 'POST';
+    const res = await fetch(`https://www.googleapis.com${path}`, {
+        method,
+        headers: { 'Authorization': `Bearer ${gapiToken}`, 'Content-Type': `multipart/related; boundary=${boundary}` },
+        body
+    });
+    if (res.status === 401) { gapiToken = null; tokenClient.requestAccessToken({ prompt: '' }); throw new Error('auth'); }
+    if (!res.ok) { const errText = await res.text(); console.error('Drive upload error response:', errText); throw new Error(`Drive upload error: ${res.status}`); }
+    return res.json();
+}
+
+async function findDriveFile() {
+    const res = await driveApiFetch('GET', `/files?spaces=appDataFolder&fields=files(id,modifiedTime)&q=name='${DRIVE_FILE_NAME}'`);
+    return res.files.length > 0 ? res.files[0] : null;
+}
+
+async function syncToDrive() {
+    if (!gapiToken || isSyncing) return;
+    isSyncing = true;
+    updateSyncStatus('Syncing...');
+    try {
+        let file;
+        if (driveFileId) {
+            file = await driveUpload(getAppState(), driveFileId);
+        } else {
+            const existing = await findDriveFile();
+            if (existing) {
+                driveFileId = existing.id;
+                file = await driveUpload(getAppState(), driveFileId);
+            } else {
+                file = await driveUpload(getAppState(), null);
+                driveFileId = file.id;
+            }
+        }
+        localStorage.setItem('driveFileId', driveFileId);
+        lastSyncTimestamp = file.modifiedTime || new Date().toISOString();
+        localStorage.setItem('lastSyncTimestamp', lastSyncTimestamp);
+        updateSyncStatus('Synced');
+    } catch (e) {
+        console.error('Sync to Drive failed:', e);
+        if (e.message === 'auth') { isSyncing = false; return; }
+        pendingSync = true;
+        localStorage.setItem('pendingSync', 'true');
+        updateSyncStatus('Sync failed');
+    } finally {
+        isSyncing = false;
+    }
+}
+
+async function syncFromDrive() {
+    if (!gapiToken || isSyncing) return;
+    isSyncing = true;
+    updateSyncStatus('Checking Drive...');
+    try {
+        let file;
+        if (driveFileId) {
+            file = await driveApiFetch('GET', `/files/${driveFileId}?fields=id,modifiedTime`);
+        } else {
+            const found = await findDriveFile();
+            if (!found) { isSyncing = false; syncToDrive(); return; }
+            driveFileId = found.id;
+            localStorage.setItem('driveFileId', driveFileId);
+            file = found;
+        }
+        if (!lastSyncTimestamp || file.modifiedTime > lastSyncTimestamp) {
+            const content = await driveApiFetch('GET', `/files/${driveFileId}?alt=media`);
+            if (content.timestamp) {
+                localStorage.setItem('conflictRemoteData', JSON.stringify(content));
+                document.getElementById('conflict-modal').style.display = 'flex';
+                updateSyncStatus('Data available');
+            } else {
+                isSyncing = false;
+                syncToDrive();
+            }
+        } else {
+            isSyncing = false;
+            syncToDrive();
+        }
+    } catch (e) {
+        console.error('Sync from Drive failed:', e);
+        if (e.message === 'auth') { isSyncing = false; return; }
+        updateSyncStatus('Sync failed');
+    } finally {
+        isSyncing = false;
+    }
+}
+
+function useRemoteData() {
+    const raw = localStorage.getItem('conflictRemoteData');
+    localStorage.removeItem('conflictRemoteData');
+    if (raw) {
+        const data = JSON.parse(raw);
+        loadAppState(data);
+        lastSyncTimestamp = data.timestamp;
+        localStorage.setItem('lastSyncTimestamp', lastSyncTimestamp);
+    }
+    document.getElementById('conflict-modal').style.display = 'none';
+    updateSyncStatus('Loaded from Drive');
+}
+
+function keepLocalData() {
+    localStorage.removeItem('conflictRemoteData');
+    document.getElementById('conflict-modal').style.display = 'none';
+    syncToDrive();
+}
+
+function queueSync() {
+    if (!isGoogleSignedIn || !gapiToken) return;
+    if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+    syncDebounceTimer = setTimeout(() => { syncToDrive(); }, 2000);
+}
+
+// Override save functions to trigger sync
+const _originalSaveData = saveData;
+saveData = function() { _originalSaveData(); queueSync(); };
+const _originalSaveStreak = saveStreak;
+saveStreak = function() { _originalSaveStreak(); queueSync(); };
+
+// Online/offline handling
+window.addEventListener('online', () => {
+    if (pendingSync && isGoogleSignedIn) {
+        pendingSync = false;
+        localStorage.removeItem('pendingSync');
+        syncToDrive();
+    }
+});
+
+window.onload = () => { loadSurahData(); loadIcons(); updateSyncButton(); if (typeof google !== 'undefined') { initGoogleAuth(); } };
 
 // SERVICE WORKER REGISTRATION
 if ('serviceWorker' in navigator) {

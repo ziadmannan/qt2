@@ -8,6 +8,7 @@
     <meta name="theme-color" content="#2e7d32">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="stylesheet" href="styles.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -97,11 +98,28 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="conflict-modal">
+    <div class="modal-content">
+        <h3>Newer Data Found</h3>
+        <p style="font-size: 0.9rem; color: var(--subtext);">Your data on Google Drive is newer than your local data. Would you like to update?</p>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button onclick="useRemoteData()" style="flex:1; padding:10px; border:none; border-radius:8px; background:var(--primary); color:white; font-weight:bold;">Use Google Drive Data</button>
+            <button onclick="keepLocalData()" style="flex:1; padding:10px; border:none; border-radius:8px;">Keep Local Data</button>
+        </div>
+    </div>
+</div>
+
 <div id="selection-screen">
     <div class="selection-header">
         <button onclick="toggleSelectionScreen()" style="float:right; padding:8px 18px; border-radius:20px; border:none; background:white; color:var(--primary); font-weight:bold;">Done</button>
         <h3>Manage List</h3>
         <input type="text" id="search-input" placeholder="Search Surahs..." oninput="renderFullList()">
+        <div class="sync-section">
+            <button class="sync-btn" id="sync-btn" onclick="handleSyncClick()">
+                <span id="sync-btn-text">Sync to Google</span>
+            </button>
+            <span class="sync-status" id="sync-status"></span>
+        </div>
     </div>
     <div id="full-surah-list" class="selection-list"></div>
 </div>
